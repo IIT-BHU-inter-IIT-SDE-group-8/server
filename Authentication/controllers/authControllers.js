@@ -47,28 +47,6 @@ const login = async (req, res) => {
     );
 }
 
-const getUserData = async (req, res) => {
-    try {
-        const userId = req.user.id; // Assuming user_id is the correct column name
-
-        // Query the PostgreSQL database to retrieve the user
-        const query = 'SELECT user_id, username, email, user_bio FROM users WHERE user_id = $1';
-        const { rows } = await pool.query(query, [userId]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const user = rows[0];
-        delete user.user_password; // Assuming you don't want to send the password back
-
-        res.json(user);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server error' });
-    }
-}
-
 const register = async (req, res) => {
 
 
@@ -129,4 +107,4 @@ const logout = (req, res) => {
     });
 };
 
-module.exports = { login, getUserData, register, logout }
+module.exports = { login, register, logout }
