@@ -3,13 +3,14 @@ const {LandingPage, viewSignUp, viewLogin, AfterLogin} = require('./controllers/
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
-const {checkAuthenticated, checkNotAuthenticated} = require('./controllers/checkAuth')
+const {checkAuthenticated, checkNotAuthenticated} = require('./middleware/checkAuthentication')
 const { auth, callback } = require('./controllers/googleAuth')
 const cookieParser = require("cookie-parser");
-const {login, fetchuser, getUser, register, logout} = require('./controllers/auth')
+const {login, getUserData, register, logout} = require('./controllers/authControllers')
+const {fetchuser} = require('./middleware/fetchuser')
 require("dotenv").config();
 const app = express();
-const initializePassport = require("./passportConfig");
+const initializePassport = require('./middleware/configPassport')
 const bodyParser = require('body-parser');
 
 const PORT = process.env.PORT || 3000;
@@ -58,7 +59,7 @@ app.get("/users/dashboard", checkNotAuthenticated, AfterLogin)
 app.get("/users/logout",logout)
 app.post("/users/register",register)
 app.post("/users/login",login)
-app.post('/users/getuser', fetchuser, getUser)
+app.post('/users/getuser', fetchuser, getUserData)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

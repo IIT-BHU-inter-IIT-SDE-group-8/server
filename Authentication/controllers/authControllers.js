@@ -1,4 +1,4 @@
-const { pool } = require('../dbConfig')
+const { pool } = require('../models/configDB')
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
@@ -47,21 +47,7 @@ const login = async (req, res) => {
     );
 }
 
-const fetchuser = (req, res, next) => {
-    const token = req.header('auth-token');
-    if (!token) {
-        res.status(401).send({ error: "Please authenticate  using a valid token" })
-    }
-    try {
-        const data = jwt.verify(token, JWT_SECRET);
-        req.user = data.user;
-        next();
-    } catch (error) {
-        res.status(401).send({ error: "Please authenticate  using a valid token" })
-    }
-}
-
-const getUser = async (req, res) => {
+const getUserData = async (req, res) => {
     try {
         const userId = req.user.id; // Assuming user_id is the correct column name
 
@@ -143,4 +129,4 @@ const logout = (req, res) => {
     });
 };
 
-module.exports = { login, fetchuser, getUser, register, logout }
+module.exports = { login, getUserData, register, logout }
