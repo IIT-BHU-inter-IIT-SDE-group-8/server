@@ -1,13 +1,12 @@
 const { pool } = require('../dbConfig')
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'AdityaIsagoodb$oy'
+const JWT_SECRET = process.env.JWT_SECRET
 
 const login = async (req, res) => {
     let success = false;
 
     const { email, password } = req.body;
-    console.log({ password, email })
     pool.query(
         `SELECT * FROM users WHERE email = $1`,
         [email],
@@ -15,20 +14,15 @@ const login = async (req, res) => {
             if (err) {
                 throw err;
             }
-            console.log("credentials are:", results.rows);
 
             if (results.rows.length > 0) {
 
                 const user = results.rows[0];
-                console.log("user_password:", user.user_password);
-                console.log("password:", password);
                 bcrypt.compare(password, user.user_password, (err, isMatch) => {
-                    console.log("1")
                     if (err) {
                         console.log("error:", err);
                     }
                     if (isMatch) {
-                        console.log("2");
                         const data = {
                             user: {
                                 id: user.user_id
@@ -39,7 +33,6 @@ const login = async (req, res) => {
                         res.json({ success, authToken })
                     } else {
                         //password is incorrect
-                        console.log("3");
                         success = false
                         return res.status(400).json({ success, error: "Please try to login with correct credentials" });
                     }
@@ -61,9 +54,7 @@ const fetchuser = (req, res, next) => {
     }
     try {
         const data = jwt.verify(token, JWT_SECRET);
-        console.log("data:", data);
         req.user = data.user;
-        console.log("reqested user:", req.user)
         next();
     } catch (error) {
         res.status(401).send({ error: "Please authenticate  using a valid token" })
@@ -96,7 +87,6 @@ const register = async (req, res) => {
 
 
     const { name, email, password, bio } = req.body;
-    console.log({ name, email, password, bio });
 
     const salt = await bcrypt.genSalt(10);
     const secPass = await bcrypt.hash(password, salt)
@@ -116,7 +106,6 @@ const register = async (req, res) => {
             if (err) {
                 console.log("error in serer:", err);
             }
-            console.log("results are", results.rows);
 
             if (results.rows.length > 0) {
                 return res.render("register", {
@@ -132,9 +121,7 @@ const register = async (req, res) => {
                         if (err) {
                             throw err;
                         }
-                        console.log("rows of results are:", results.rows);
                         req.flash("success_msg", "You are now registered. Please log in");
-                        // res.redirect("/users/login");
                     }
                 );
             }

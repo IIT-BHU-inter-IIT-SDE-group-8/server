@@ -8,7 +8,6 @@ const viewSignUp =  (req, res) => {
 
 const viewLogin = (req, res) => {
     // flash sets a messages variable. passport sets the error message
-    // console.log("flash error:",req.session.flash.error);
     res.redirect("/users/login");
 };
 

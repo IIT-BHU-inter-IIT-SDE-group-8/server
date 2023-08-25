@@ -1,11 +1,11 @@
 const {pool} = require('../dbConfig')
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'AdityaIsagoodb$oy'
+const JWT_SECRET = process.env.JWT_SECRET
 const { OAuth2Client } = require('google-auth-library');
 
 const googleClient = new OAuth2Client({
-    clientId: '515774685184-judv39nhmvssuseo283vd13ji7d2d4eh.apps.googleusercontent.com',
-    clientSecret: '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',
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
     redirectUri: 'http://localhost:3000/auth/google/callback',
 });
 
@@ -17,7 +17,6 @@ const auth = (req, res) => {
 };
 
 const callback = async (req, res) => {
-    console.log("I am called")
     try {
         const { code } = req.query;
         const { tokens } = await googleClient.getToken(code);
@@ -25,7 +24,7 @@ const callback = async (req, res) => {
         // Get user information from Google
         const userResponse = await googleClient.verifyIdToken({
             idToken: tokens.id_token,
-            audience: "515774685184-judv39nhmvssuseo283vd13ji7d2d4eh.apps.googleusercontent.com",
+            audience: process.env.CLIENT_ID,
             url: 'https://www.googleapis.com/oauth2/v2/userinfo',
             headers: {
                 Authorization: `Bearer ${tokens.access_token}`,
