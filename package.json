@@ -1,7 +1,7 @@
 {
   "name": "authentication",
   "version": "1.0.0",
-  "description": "hjbhj",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js",
