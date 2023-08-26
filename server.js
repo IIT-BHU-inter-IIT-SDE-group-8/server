@@ -1,10 +1,9 @@
 const express = require("express");
 const passport = require("passport");
 const session = require("express-session");
+const { auth, callback } = require('./src/controllers/googleAuth')
 const cookieParser = require("cookie-parser");
-const {
-  createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip, link_user_to_user
-} = require('./src/models/tripModels');
+const {login, register, logout} = require('./src/controllers/authControllers')
 require("dotenv").config();
 const app = express();
 const initializePassport = require('./src/middleware/configPassport')
@@ -16,17 +15,7 @@ const tripRouter = require('./src/routes/trip_routes');
 const { createUsersTable } = require("./src/models/userModel");
 const PORT = process.env.PORT;
 
-//---->Setting up middleware<----//
-
-// Database Models
-createUsersTable();
-createTrip();
-trip_link_to_community();
-link_user_to_community();
-link_user_to_trip();
-link_user_to_user();
-
-//Additional middlewares
+const PORT = process.env.PORT;
 app.use(express.json())
 app.use(cookieParser());
 
