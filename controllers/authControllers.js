@@ -8,7 +8,7 @@ const login = async (req, res) => {
 
     const { email, password } = req.body;
     pool.query(
-        `SELECT * FROM users WHERE email = $1`,
+        `SELECT * FROM users WHERE user_email = $1`,
         [email],
         (err, results) => {
             if (err) {
@@ -50,7 +50,7 @@ const login = async (req, res) => {
 const register = async (req, res) => {
 
 
-    const { name, email, password, bio } = req.body;
+    const { name, email, password, bio, phone } = req.body;
 
     const salt = await bcrypt.genSalt(10);
     const secPass = await bcrypt.hash(password, salt)
@@ -64,7 +64,7 @@ const register = async (req, res) => {
 
     pool.query(
         `SELECT * FROM users
-            WHERE email = $1`,
+            WHERE user_email = $1`,
         [email],
         (err, results) => {
             if (err) {
@@ -77,10 +77,10 @@ const register = async (req, res) => {
                 });
             } else {
                 pool.query(
-                    `INSERT INTO users (username, email, user_password, user_bio)
-                    VALUES ($1, $2, $3, $4)
+                    `INSERT INTO users (user_name, user_email, user_password, user_bio, user_mobile)
+                    VALUES ($1, $2, $3, $4, $5)
                     RETURNING user_id, user_password`,
-                    [name, email, secPass, bio],
+                    [name, email, secPass, bio, phone],
                     (err, results) => {
                         if (err) {
                             throw err;

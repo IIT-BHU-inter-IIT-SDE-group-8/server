@@ -6,13 +6,13 @@ const { OAuth2Client } = require('google-auth-library');
 const googleClient = new OAuth2Client({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    redirectUri: 'http://localhost:3000/auth/google/callback',
+    redirectUri: 'http://localhost:4000/auth/google/callback',
 });
 
 const auth = (req, res) => {
     res.redirect(googleClient.generateAuthUrl({
         access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+        scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
     }));
 };
 
@@ -35,7 +35,7 @@ const callback = async (req, res) => {
 
         // Check if the user already exists in your database
         const userQuery = await pool.query(
-            `SELECT * FROM users WHERE email = $1`,
+            `SELECT * FROM users WHERE user_email = $1`,
             [email]
         );
 
@@ -52,10 +52,10 @@ const callback = async (req, res) => {
 
         // If the user doesn't exist, create a new user
         const newUserQuery = await pool.query(
-            `INSERT INTO users (username, email, user_password, user_bio)
-         VALUES ($1, $2, $3, $4)
+            `INSERT INTO users (user_name, user_email, user_password)
+         VALUES ($1, $2, $3)
          RETURNING user_id`,
-            [name, email, at_hash, "default"]
+            [name, email, at_hash]
         );
 
         const newUser = newUserQuery.rows[0];
