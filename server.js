@@ -5,7 +5,7 @@ const session = require("express-session");
 const { auth, callback } = require('./controllers/googleAuth')
 const cookieParser = require("cookie-parser");
 const {login, register, logout} = require('./controllers/authControllers')
-require("dotenv").config({path:"./env/config.env"});
+require("dotenv").config();
 const app = express();
 const initializePassport = require('./middleware/configPassport')
 const bodyParser = require('body-parser');
