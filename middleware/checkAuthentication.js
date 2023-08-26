@@ -9,7 +9,6 @@ const checkAuthenticated = (req, res, next) => {
     }
     try {
         const data = jwt.verify(token, JWT_SECRET);
-        console.log("data:",data);
         req.user = data.user;
         next();
     } catch (error) {
@@ -17,4 +16,4 @@ const checkAuthenticated = (req, res, next) => {
     }
 }
 
-module.exports = checkAuthenticated
+module.exports = {checkAuthenticated}
