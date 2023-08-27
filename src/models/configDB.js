@@ -23,5 +23,18 @@ pool.query(`
     );
 `);
 
+pool.query(`
+    CREATE TABLE IF NOT EXISTS trips (
+        trip_id SERIAL PRIMARY KEY,
+        trip_name VARCHAR(50) NOT NULL,
+        trip_origin VARCHAR(50) NOT NULL,
+        trip_destination VARCHAR(50) NOT NULL,
+        trip_desc VARCHAR(300) NOT NULL,
+        trip_departure_datetime TIMESTAMP NOT NULL,
+        trip_arrival_datetime TIMESTAMP NOT NULL,
+        community_id integer NOT NULL
+    );
+`)
+
 
 module.exports = {pool}
