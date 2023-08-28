@@ -38,11 +38,23 @@ const client = new Client({
   database: process.env.DB_DATABASE
 })
 
-client.connect()
+client.connect().then(()=>{
+  console.log("Connected to Database")
+
+  client.query(`
+    CREATE TABLE IF NOT EXISTS users (
+        user_id SERIAL PRIMARY KEY,
+        user_name VARCHAR(255) NOT NULL,
+        user_email VARCHAR(255) NOT NULL UNIQUE,
+        user_password VARCHAR(255) NOT NULL,
+        user_bio TEXT,
+        user_mobile VARCHAR(20)
+    );
+`)
   .then(() => {
-    console.log('Connected to the database');
+    console.log('Table "users" created or already exists');
   })
-  .catch(error => {
-    console.error('Error connecting to the database:', error);
+  .catch(err => {
+    console.error('Error creating table:', err);
   });
 
