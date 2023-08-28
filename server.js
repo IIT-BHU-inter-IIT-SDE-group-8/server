@@ -10,10 +10,14 @@ const bodyParser = require('body-parser');
 // const flash = require("express-flash");
 
 const userRouter = require('./src/routes/auth_routes');
+const { createUsersTable } = require("./src/models/userModel");
 const PORT = process.env.PORT || 3000;
 
 //---->Setting up middleware<----//
 
+
+// Database Models
+createUsersTable();
 
 //Additional middlewares
 app.use(express.json())
