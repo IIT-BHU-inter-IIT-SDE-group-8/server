@@ -5,46 +5,65 @@ const JWT_SECRET = process.env.JWT_SECRET
 const sendTrue = require('../utils/sendTrue.js');
 const { ErrorHandler } = require("../../middleware/error.js");
 
-const login = async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
-        const emailCheckQuery = {
-            text: `SELECT * FROM users WHERE user_email = $1`,
-            values: [email]
-        };
-        const emailCheckResult = await client.query(emailCheckQuery);
-        const results = emailCheckResult.rows
-        if (results.length > 0) {
-            const user = results[0];
-            const isMatch = await bcrypt.compare(password, user.user_password)
-            if (isMatch) {
-                const data = {
-                    user: {
-                        id: user.user_id
+const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    client.query(
+        `SELECT * FROM users WHERE user_email = $1`,
+        [email],
+        (err, results) => {
+            if (err) {
+                console.error("Error:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+
+            if (results.rows.length > 0) {
+                const user = results.rows[0];
+
+                bcrypt.compare(password, user.user_password, (err, isMatch) => {
+                    if (err) {
+                        console.error("Error:", err);
+                        return res.status(500).json({ error: "Internal Server Error" });
                     }
-                };
-                const authToken = jwt.sign(data, JWT_SECRET);
 
-                // Store the authToken in a cookie
-                res.cookie('authToken', authToken, { httpOnly: true });
+                    if (isMatch) {
+                        const data = {
+                            user: {
+                                id: user.user_id
+                            }
+                        };
+                        const authToken = jwt.sign(data, JWT_SECRET);
 
-                return sendTrue(res, 200, "Login successful");
+                        // Store the authToken in a cookie
+                        res.cookie('authToken', authToken, { httpOnly: true });
+
+                        return res.status(200).json({ success: true });
+                    } else {
+                        return res.status(400).json({
+                            success: false,
+                            error: "Please try to login with correct credentials"
+                        });
+                    }
+                });
             } else {
-                return next(new ErrorHandler("Please try to login with correct credentials",401));
+                return res.status(400).json({
+                    success: false,
+                    error: "No user with that email address"
+                });
             }
         } else {
             return next(new ErrorHandler("No user exists with that email address",404));
         }
-    } catch (error) {
-        next(error);
-    }
+    );
 };
 
 
-const register = async (req, res, next) => {
+const register = async (req, res) => {
+    const { name, email, password, bio, phone } = req.body;
+
     try {
-        const { name, email, password, bio, phone } = req.body;
-        const secPass = await bcrypt.hash(password, 10);
+        const salt = await bcrypt.genSalt(10);
+        const secPass = await bcrypt.hash(password, salt);
 
         const emailCheckQuery = {
             text: `SELECT * FROM users WHERE user_email = $1`,
@@ -52,8 +71,9 @@ const register = async (req, res, next) => {
         };
 
         const emailCheckResult = await client.query(emailCheckQuery);
+
         if (emailCheckResult.rows.length > 0) {
-            return next(new ErrorHandler("Email already registered",400));
+            return res.status(400).json({ error: "Email already registered" });
         }
 
         const insertUserQuery = {
@@ -69,20 +89,22 @@ const register = async (req, res, next) => {
 
         // Store the authToken in a cookie
         res.cookie('authToken', authToken, { httpOnly: true });
-        return sendTrue(res, true, 201, "You are now registered. Please log in");
+
+        return res.status(200).json({
+            message: "You are now registered. Please log in"
+        });
     } catch (error) {
-        next(error);
+        console.error("Error during registration:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
-const logout = (req, res, next) => {
-    try {
-        res.clearCookie('authToken');
-        res.redirect('/users/login');
-    } catch (error) {
-        next(error);
-    }
+const logout = (req, res) => {
 
+    res.clearCookie('authToken');
+    res.redirect('/users/login');
+    return res.status(200).json({ message: "You have been logged out" });
 };
+  
 
 
