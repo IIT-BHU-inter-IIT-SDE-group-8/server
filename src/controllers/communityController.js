@@ -1,12 +1,14 @@
 const community_trips_cache = [];
 const community_cache = [];
 //TODO: create a community cache
-//TODO: return results using the utils defined by Varun
+
+
+
 const client = require("../config/configDB");
 
 
-const getAllCommunities = async (req, res) => {
-    client.query("SELECT * FROM communities", function(error, results,) {
+export const getAllCommunities = async (req, res) => {
+    client.query("SELECT * FROM `communities`", function(error, results, fields) {
         if (!error) {
             res.status(200).json(results);
         } else {
