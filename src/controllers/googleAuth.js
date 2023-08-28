@@ -47,14 +47,18 @@ const callback = async (req, res) => {
                 }
             }
             const authToken = jwt.sign(data, JWT_SECRET);
+
+            // Set the authToken cookie
+            res.cookie('authToken', authToken, { httpOnly: true });
+
             return res.json({ success: true, authToken });
         }
 
         // If the user doesn't exist, create a new user
         const newUserQuery = await client.query(
             `INSERT INTO users (user_name, user_email, user_password)
-         VALUES ($1, $2, $3)
-         RETURNING user_id`,
+            VALUES ($1, $2, $3)
+            RETURNING user_id`,
             [name, email, at_hash]
         );
 
@@ -66,6 +70,9 @@ const callback = async (req, res) => {
         }
         const authToken = jwt.sign(data, JWT_SECRET);
 
+        // Set the authToken cookie
+        res.cookie('authToken', authToken, { httpOnly: true });
+
         return res.json({ success: true, authToken });
 
     } catch (error) {
@@ -73,5 +80,6 @@ const callback = async (req, res) => {
         res.status(500).json({ error: 'Internal Server error' });
     }
 }
+
 
 module.exports = { auth, callback };

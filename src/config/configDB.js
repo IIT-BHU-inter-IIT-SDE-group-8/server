@@ -40,6 +40,24 @@ const client = new Client({
 
 client.connect().then(()=>{
   console.log("Connected to Database")
+
+  client.query(`
+    CREATE TABLE IF NOT EXISTS users (
+        user_id SERIAL PRIMARY KEY,
+        user_name VARCHAR(255) NOT NULL,
+        user_email VARCHAR(255) NOT NULL UNIQUE,
+        user_password VARCHAR(255) NOT NULL,
+        user_bio TEXT,
+        user_mobile VARCHAR(20)
+    );
+`)
+  .then(() => {
+    console.log('Table "users" created or already exists');
+  })
+  .catch(err => {
+    console.error('Error creating table:', err);
+  });
+
 }).catch((err)=>console.log("Error: ", err))
 
 module.exports = client

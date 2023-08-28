@@ -4,107 +4,104 @@ const client = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
 
 const login = async (req, res) => {
-    let success = false;
-
     const { email, password } = req.body;
+
     client.query(
         `SELECT * FROM users WHERE user_email = $1`,
         [email],
         (err, results) => {
             if (err) {
-                throw err;
+                console.error("Error:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
             }
 
             if (results.rows.length > 0) {
-
                 const user = results.rows[0];
+
                 bcrypt.compare(password, user.user_password, (err, isMatch) => {
                     if (err) {
-                        console.log("error:", err);
+                        console.error("Error:", err);
+                        return res.status(500).json({ error: "Internal Server Error" });
                     }
+
                     if (isMatch) {
                         const data = {
                             user: {
                                 id: user.user_id
                             }
-                        }
+                        };
                         const authToken = jwt.sign(data, JWT_SECRET);
-                        success = true
-                        res.json({ success, authToken })
+
+                        // Store the authToken in a cookie
+                        res.cookie('authToken', authToken, { httpOnly: true });
+
+                        return res.status(200).json({ success: true });
                     } else {
-                        //password is incorrect
-                        success = false
-                        return res.status(400).json({ success, error: "Please try to login with correct credentials" });
+                        return res.status(400).json({
+                            success: false,
+                            error: "Please try to login with correct credentials"
+                        });
                     }
                 });
             } else {
-                // No user
-                return done(null, false, {
-                    message: "No user with that email address"
+                return res.status(400).json({
+                    success: false,
+                    error: "No user with that email address"
                 });
             }
         }
     );
-}
+};
+
 
 const register = async (req, res) => {
-
-
     const { name, email, password, bio, phone } = req.body;
 
-    const salt = await bcrypt.genSalt(10);
-    const secPass = await bcrypt.hash(password, salt)
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const secPass = await bcrypt.hash(password, salt);
 
+        const emailCheckQuery = {
+            text: `SELECT * FROM users WHERE user_email = $1`,
+            values: [email]
+        };
 
-    const data = {
-        user: {
-            email: email
+        const emailCheckResult = await client.query(emailCheckQuery);
+
+        if (emailCheckResult.rows.length > 0) {
+            return res.status(400).json({ error: "Email already registered" });
         }
+
+        const insertUserQuery = {
+            text: `INSERT INTO users (user_name, user_email, user_password, user_bio, user_mobile)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING user_id, user_password`,
+            values: [name, email, secPass, bio, phone]
+        };
+
+        await client.query(insertUserQuery);
+
+        const authToken = jwt.sign({ user: { email } }, JWT_SECRET);
+
+        // Store the authToken in a cookie
+        res.cookie('authToken', authToken, { httpOnly: true });
+
+        return res.status(200).json({
+            message: "You are now registered. Please log in"
+        });
+    } catch (error) {
+        console.error("Error during registration:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
-
-    client.query(
-        `SELECT * FROM users
-            WHERE user_email = $1`,
-        [email],
-        (err, results) => {
-            if (err) {
-                console.log("error in serer:", err);
-            }
-
-            if (results.rows.length > 0) {
-                return res.render("register", {
-                    message: "Email already registered"
-                });
-            } else {
-                client.query(
-                    `INSERT INTO users (user_name, user_email, user_password, user_bio, user_mobile)
-                    VALUES ($1, $2, $3, $4, $5)
-                    RETURNING user_id, user_password`,
-                    [name, email, secPass, bio, phone],
-                    (err, results) => {
-                        if (err) {
-                            throw err;
-                        }
-                        req.flash("success_msg", "You are now registered. Please log in");
-                    }
-                );
-            }
-        }
-    );
-
-    const authToken = jwt.sign(data, JWT_SECRET);
-    res.json({ authToken })
-}
+};
 
 const logout = (req, res) => {
-    req.logout((err) => {
-        if (err) {
-            // Handle any error that might occur during logout
-            console.error(err);
-        }
-        // Redirect or respond as needed
-        res.render("index", { message: "You have logged out successfully" });
-    });
+
+    res.clearCookie('authToken');
+    res.redirect('/users/login');
+    return res.status(200).json({ message: "You have been logged out" });
 };
+  
+
 
 module.exports = { login, register, logout }
