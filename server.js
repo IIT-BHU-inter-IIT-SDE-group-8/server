@@ -2,12 +2,12 @@ const express = require("express");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
-const { auth, callback } = require('./controllers/googleAuth')
+const { auth, callback } = require('./src/controllers/googleAuth')
 const cookieParser = require("cookie-parser");
-const {login, register, logout} = require('./controllers/authControllers')
+const {login, register, logout} = require('./src/controllers/authControllers')
 require("dotenv").config();
 const app = express();
-const initializePassport = require('./middleware/configPassport')
+const initializePassport = require('./src/middleware/configPassport')
 const bodyParser = require('body-parser');
 
 const PORT = process.env.PORT || 3000;
