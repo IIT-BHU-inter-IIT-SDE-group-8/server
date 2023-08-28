@@ -21,6 +21,7 @@ initializePassport(passport);
 app.get('/auth/google', auth)
 app.get('/auth/google/callback', callback)
 
+// Passport
 passport.serializeUser(function(user, done){
   done(null, user)
 })
@@ -32,6 +33,8 @@ passport.deserializeUser(function(user, done){
 // Parses details from a form
 app.use(express.urlencoded({ extended: false }));
 app.set("view engine", "ejs");
+
+
 
 app.use(
   session({
@@ -55,5 +58,7 @@ app.post("/users/login",login)
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
 
 

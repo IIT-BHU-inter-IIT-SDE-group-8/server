@@ -1,11 +1,11 @@
 const LocalStrategy = require("passport-local").Strategy;
-const {pool} = require('../models/configDB')
+const client = require('../config/configDB')
 const bcrypt = require("bcrypt");
 
 function initialize(passport) {
 
     const authenticateUser = (email, password, done) => {
-      pool.query(
+      client.query(
         `SELECT * FROM users WHERE email = $1`,
         [email],
         (err, results) => {
@@ -53,7 +53,7 @@ function initialize(passport) {
     // The fetched object is attached to the request object as req.user
   
     passport.deserializeUser((user_id, done) => {
-      pool.query(`SELECT * FROM users WHERE user_id = $1`, [user_id], (err, results) => {
+      client.query(`SELECT * FROM users WHERE user_id = $1`, [user_id], (err, results) => {
         if (err) {
           return done(err);
         }

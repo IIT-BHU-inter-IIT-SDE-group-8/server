@@ -1,13 +1,13 @@
-const { pool } = require('../models/configDB')
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
+const client = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
 
 const login = async (req, res) => {
     let success = false;
 
     const { email, password } = req.body;
-    pool.query(
+    client.query(
         `SELECT * FROM users WHERE user_email = $1`,
         [email],
         (err, results) => {
@@ -62,7 +62,7 @@ const register = async (req, res) => {
         }
     }
 
-    pool.query(
+    client.query(
         `SELECT * FROM users
             WHERE user_email = $1`,
         [email],
@@ -76,7 +76,7 @@ const register = async (req, res) => {
                     message: "Email already registered"
                 });
             } else {
-                pool.query(
+                client.query(
                     `INSERT INTO users (user_name, user_email, user_password, user_bio, user_mobile)
                     VALUES ($1, $2, $3, $4, $5)
                     RETURNING user_id, user_password`,
