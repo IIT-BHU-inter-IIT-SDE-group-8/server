@@ -12,6 +12,14 @@ const pool = new Pool({
     
 })
 
+pool.on('connect', () => {
+    console.log('Connected to the database');
+});
+
+pool.on('error', (err) => {
+    console.error('Error connecting to the database:', err);
+});
+
 pool.query(`
     CREATE TABLE IF NOT EXISTS users (
         user_id SERIAL PRIMARY KEY,
