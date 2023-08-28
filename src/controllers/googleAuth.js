@@ -1,4 +1,4 @@
-const {pool} = require('../models/configDB')
+const client = require('../config/configDB')
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
 const { OAuth2Client } = require('google-auth-library');
@@ -34,7 +34,7 @@ const callback = async (req, res) => {
         const { email, name, at_hash } = userResponse.payload;
 
         // Check if the user already exists in your database
-        const userQuery = await pool.query(
+        const userQuery = await client.query(
             `SELECT * FROM users WHERE user_email = $1`,
             [email]
         );
@@ -51,7 +51,7 @@ const callback = async (req, res) => {
         }
 
         // If the user doesn't exist, create a new user
-        const newUserQuery = await pool.query(
+        const newUserQuery = await client.query(
             `INSERT INTO users (user_name, user_email, user_password)
          VALUES ($1, $2, $3)
          RETURNING user_id`,
