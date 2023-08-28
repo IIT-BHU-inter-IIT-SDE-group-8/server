@@ -58,5 +58,3 @@ client.connect().then(()=>{
     console.error('Error creating table:', err);
   });
 
-}).catch((err)=>console.log("Error: ", err))
-
