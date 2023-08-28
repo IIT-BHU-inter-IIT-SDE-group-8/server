@@ -22,4 +22,3 @@ const createUsersTable = async () => {
 
 module.exports = {
   createUsersTable
-};
