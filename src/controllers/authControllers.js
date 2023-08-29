@@ -44,8 +44,8 @@ const register = async (req, res, next) => {
     const { name, email, password, bio, phone } = req.body;
 
     try {
-        const salt = await bcrypt.genSalt(10);
-        const secPass = await bcrypt.hash(password, salt);
+        const { name, email, password, bio, phone } = req.body;
+        const secPass = await bcrypt.hash(password, 10);
 
         const emailCheckQuery = {
             text: `SELECT * FROM users WHERE user_email = $1`,
@@ -53,7 +53,6 @@ const register = async (req, res, next) => {
         };
 
         const emailCheckResult = await client.query(emailCheckQuery);
-
         if (emailCheckResult.rows.length > 0) {
             return next(new ErrorHandler("Email already registered",400));
         }
@@ -80,12 +79,14 @@ const register = async (req, res, next) => {
     }
 };
 
-const logout = (req, res) => {
+const logout = (req, res, next) => {
+    try {
+        res.clearCookie('authToken');
+        res.redirect('/users/login');
+    } catch (error) {
+        next(error);
+    }
 
-    res.clearCookie('authToken');
-    res.redirect('/users/login');
-    return res.status(200).json({ message: "You have been logged out" });
 };
-  
 
 
