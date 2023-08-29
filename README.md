@@ -25,7 +25,9 @@ Make sure you have installed all of the following prerequisites on your developm
    ```
 6. After completing your work, commit your changes and push them.
 7. Take pull from main branch and resolve conflicts if any (Important)
-8. Make a pull request and wait for approval to merge 
+8. Make a pull request and wait for approval to merge
+9. Recommended Format for Title of Commits:      
+   [ADDED]... or [UPDATED]... or [DELETED]...
 
 
 
