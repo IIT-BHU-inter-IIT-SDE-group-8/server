@@ -8,7 +8,7 @@ const client = require("../config/configDB");
 
 
 export const getAllCommunities = async (req, res) => {
-    client.query("SELECT * FROM `communities`", function(error, results, fields) {
+    client.query("SELECT * FROM communities", function(error, results, fields) {
         if (!error) {
             res.status(200).json(results);
         } else {
@@ -22,7 +22,7 @@ export const getAllCommunities = async (req, res) => {
 
 export const createCommunity = async (req, res) => {
     client.query(
-        "INSERT INTO `communities` (community_name, community_desc) VALUES (?, ? )",
+        "INSERT INTO communities (community_name, community_desc) VALUES ($1, $2 )",
         [
             req.body.community_name,
             req.body.community_desc,
@@ -45,7 +45,7 @@ export const createCommunity = async (req, res) => {
 export const getCommunityById = async () => {
 
 
-    client.query("SELECT *  FROM `communities` WHERE community_id = ?"
+    client.query("SELECT *  FROM communities WHERE community_id = $1"
         , req.params.community_id,
         function(error, results, fields) {
             if (!error) {
@@ -60,7 +60,7 @@ export const getCommunityById = async () => {
 }
 export const updateCommunity = async (req, res) => {
     client.query(
-        "UPDATE `communities` SET community_name = ?, community_desc= ? WHERE id = ?",
+        "UPDATE communities SET community_name = $1, community_desc= $2 WHERE id =$3",
         [
             req.body.community_name,
             req.body.community_desc,
@@ -83,7 +83,7 @@ export const updateCommunity = async (req, res) => {
 
 export const deleteCommunity = async (req, res) => {
     client.query(
-        "DELETE FROM `communities` WHERE id = ?",
+        "DELETE FROM communities WHERE id = $1",
         req.params.community_id,
         function(error, results, fields) {
             if (!error) {
@@ -101,7 +101,7 @@ export const deleteCommunity = async (req, res) => {
 export const getAllTripsOfCommunity = async (req, res) => {
 
 
-    client.query("SELECT trip_id FROM `community_trips` WHERE community_id = ?"
+    client.query("SELECT trip_id FROM community_trips WHERE community_id = $1"
         , req.params.community_id,
 
         function(error, results, fields) {
@@ -133,7 +133,7 @@ export const addTripToCommunity = async (req, res) => {
     }
 
     client.query(
-        "INSERT INTO `community_trips` WHERE community_id = ?, trip_id = ?", req.params.community_id, req.params.trip_id,
+        "INSERT INTO community_trips WHERE community_id = $1, trip_id = $2", req.params.community_id, req.params.trip_id,
         function(error, results, fields) {
             if (!error) {
                 res.status(201).send(results);
@@ -157,7 +157,7 @@ export const removeTripFromCommunity = async (req, res) => {
     }
 
     client.query(
-        "DELETE FROM `community_trips` WHERE community_id = ?, trip_id = ?",
+        "DELETE FROM community_trips WHERE community_id = $1, trip_id = $2",
         req.params.community_id, req.params.trip_id,
         function(error, results, fields) {
             if (!error) {
@@ -173,8 +173,6 @@ export const removeTripFromCommunity = async (req, res) => {
             }
         }
     );
-
-
 }
 
 
@@ -190,7 +188,7 @@ const communityContainsTrip = async (community_id, trip_id) => {
     }
     else {
 
-        client.query("SELECT * FROM `community_trips` WHERE community_id = ?, trip_id = ?",
+        client.query("SELECT * FROM community_trips WHERE community_id = $1, trip_id = $2",
             community_id, trip_id, function(error, results, fields) {
 
                 if (!error) {
