@@ -15,7 +15,6 @@ const createUsersTable = async () => {
     `;
 
     await client.query(query);
-    // console.log('Table "users" created successfully');
   } catch (error) {
     console.error('Error creating table:', error);
   }
