@@ -3,17 +3,23 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
 const { OAuth2Client } = require('google-auth-library');
 
+
 const googleClient = new OAuth2Client({
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     redirectUri: 'http://localhost:4000/auth/google/callback',
 });
 
-const auth = (req, res) => {
-    res.redirect(googleClient.generateAuthUrl({
-        access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
-    }));
+const auth = (req, res, next) => {
+    try {
+        res.redirect(googleClient.generateAuthUrl({
+            access_type: 'offline',
+            scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+        }));
+    } catch (error) {
+        next(error);
+    }
+
 };
 
 const callback = async (req, res) => {
@@ -76,8 +82,7 @@ const callback = async (req, res) => {
         return res.json({ success: true, authToken });
 
     } catch (error) {
-        console.error("Google authentication error:", error);
-        res.status(500).json({ error: 'Internal Server error' });
+        next(error);
     }
 }
 

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon app.js",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts)\""
   },

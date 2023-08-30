@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors');
-const { checkAuthenticated } = require('../../middleware/checkAuthentication');
+const { checkAuthenticated } = require('../middleware/checkAuthentication');
 const { queryTripsByCommunityId, createTrip, UpdateTrip, deleteTrip } = require('../controllers/tripController')
 
 router.use(cors());
