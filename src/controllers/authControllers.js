@@ -28,7 +28,7 @@ const login = async (req, res, next) => {
                 // Store the authToken in a cookie
                 res.cookie('authToken', authToken, { httpOnly: true });
 
-                return sendTrue(res, 200, "Login successful");
+                return sendTrue(res, 200,authToken, "Login successful");
             } else {
                 return next(new ErrorHandler("Please try to login with correct credentials",401));
             }
@@ -73,7 +73,7 @@ const register = async (req, res, next) => {
             // Store the authToken in a cookie
             res.cookie('authToken', authToken, { httpOnly: true });
             
-            return sendTrue(res, true, 201, "You are now registered. Please log in");
+            return sendTrue(res, 201, "You are now registered. Please log in");
         });
     } catch (error) {
         next(error);
