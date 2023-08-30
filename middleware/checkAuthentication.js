@@ -17,4 +17,4 @@ const checkAuthenticated = (req, res, next) => {
     }
 }
 
-module.exports = checkAuthenticated
+module.exports = {checkAuthenticated}
