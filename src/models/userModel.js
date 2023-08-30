@@ -1,17 +1,4 @@
-// const client  = require("../config/configDB");
-
-// client.query(`
-//     CREATE TABLE IF NOT EXISTS users (
-//         user_id SERIAL PRIMARY KEY,
-//         user_name VARCHAR(255) NOT NULL,
-//         user_email VARCHAR(255) NOT NULL UNIQUE,
-//         user_password VARCHAR(255) NOT NULL,
-//         user_bio TEXT,
-//         user_mobile VARCHAR(20)
-//     );
-// `);
-
-const client  = require("../config/configDB");
+const {client}  = require("../config/configDB");
 
 // Create the users table
 const createUsersTable = async () => {
@@ -28,12 +15,12 @@ const createUsersTable = async () => {
     `;
 
     await client.query(query);
-    console.log('Table "users" created successfully');
+    // console.log('Table "users" created successfully');
   } catch (error) {
     console.error('Error creating table:', error);
   }
 };
 
 module.exports = {
-  createUsersTable,
+  createUsersTable
 };

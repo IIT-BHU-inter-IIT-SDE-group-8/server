@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Filters</title>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        .filter-form {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px #ccc;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trip Filters</h1>
+    <div class="filter-form">
+        <form id="tripFilterForm">
+            <div class="form-group">
+                <label for="tripDate">Trip Date:</label>
+                <input type="date" id="tripDate" name="date">
+            </div>
+            <div class="form-group">
+                <label for="tripOrigin">Trip Origin:</label>
+                <input type="text" id="tripOrigin" name="origin">
+            </div>
+            <div class="form-group">
+                <label for="tripDestination">Trip Destination:</label>
+                <input type="text" id="tripDestination" name="destination">
+            </div>
+            <div class="form-group">
+                <label for="rangeStartTime">Range Start Time:</label>
+                <input type="time" id="rangeStartTime" name="timeRangeStartTime">
+            </div>
+            <div class="form-group">
+                <label for="rangeEndTime">Range End Time:</label>
+                <input type="time" id="rangeEndTime" name="timeRangeEndTime">
+            </div>
+            <div class="form-group">
+                <button type="submit">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- The filtered trip results will be displayed here -->
+    <div id="filteredTrips">
+        <!-- Filtered trip results will be displayed here -->
+    </div>
+
+    <script>
+        // JavaScript to handle form submission and AJAX request
+        document.addEventListener('DOMContentLoaded', function () {
+            const tripFilterForm = document.getElementById('tripFilterForm');
+            const filteredTrips = document.getElementById('filteredTrips');
+
+            tripFilterForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(tripFilterForm);
+                const queryParams = new URLSearchParams(formData).toString();
+
+                fetch(`http://localhost:4000/trips?${queryParams}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display filtered trips in the 'filteredTrips' element
+                        // Format the JSON data with indentation for readability
+                        const formattedJSON = JSON.stringify(data.results, null, 2);
+
+                        // Create a <pre> element to preserve whitespace and use a monospace font
+                        const preElement = document.createElement('pre');
+                        preElement.textContent = formattedJSON;
+
+                        // Clear existing content and append the formatted JSON to 'filteredTrips'
+                        filteredTrips.innerHTML = '';
+                        filteredTrips.appendChild(preElement);
+
+                    })
+                    .catch(error => console.error(error));
+            });
+        });
+    </script>
+</body>
+</html>
