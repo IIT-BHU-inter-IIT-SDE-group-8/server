@@ -5,56 +5,58 @@ const JWT_SECRET = process.env.JWT_SECRET
 const sendTrue = require('../utils/sendTrue.js');
 const { ErrorHandler } = require("../middleware/error.js");
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
     const { email, password } = req.body;
 
-    client.query(
-        `SELECT * FROM users WHERE user_email = $1`,
-        [email],
-        (err, results) => {
-            if (err) {
-                console.error("Error:", err);
-                return res.status(500).json({ error: "Internal Server Error" });
+    try {
+        client.query(
+            `SELECT * FROM users WHERE user_email = $1`,
+            [email],
+            (err, results) => {
+                if (err) {
+                    console.error("Error:", err);
+                    return res.status(500).json({ error: "Internal Server Error" });
+                }
+    
+                if (results.rows.length > 0) {
+                    const user = results.rows[0];
+    
+                    bcrypt.compare(password, user.user_password, (err, isMatch) => {
+                        if (err) {
+                            console.error("Error:", err);
+                            return res.status(500).json({ error: "Internal Server Error" });
+                        }
+    
+                        if (isMatch) {
+                            const data = {
+                                user: {
+                                    id: user.user_id
+                                }
+                            };
+                            const authToken = jwt.sign(data, JWT_SECRET);
+    
+                            // Store the authToken in a cookie
+                            res.cookie('authToken', authToken, { httpOnly: true });
+    
+                            return res.status(200).json({ success: true, authToken: authToken });
+                        } else {
+                            return res.status(400).json({
+                                success: false,
+                                error: "Please try to login with correct credentials"
+                            });
+                        }
+                    });
+                } else {
+                    return res.status(400).json({
+                        success: false,
+                        error: "No user with that email address"
+                    });
+                }
             }
-
-            if (results.rows.length > 0) {
-                const user = results.rows[0];
-
-                bcrypt.compare(password, user.user_password, (err, isMatch) => {
-                    if (err) {
-                        console.error("Error:", err);
-                        return res.status(500).json({ error: "Internal Server Error" });
-                    }
-
-                    if (isMatch) {
-                        const data = {
-                            user: {
-                                id: user.user_id
-                            }
-                        };
-                        const authToken = jwt.sign(data, JWT_SECRET);
-
-                        // Store the authToken in a cookie
-                        res.cookie('authToken', authToken, { httpOnly: true });
-
-                        return res.status(200).json({ success: true, authToken: authToken });
-                    } else {
-                        return res.status(400).json({
-                            success: false,
-                            error: "Please try to login with correct credentials"
-                        });
-                    }
-                });
-            } else {
-                return res.status(400).json({
-                    success: false,
-                    error: "No user with that email address"
-                });
-            }
-        } else {
-            return next(new ErrorHandler("No user exists with that email address",404));
-        }
-    );
+        );
+    } catch (error) {
+        next(error);
+    }
 };
 
 
