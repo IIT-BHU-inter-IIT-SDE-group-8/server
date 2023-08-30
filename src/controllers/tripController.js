@@ -7,7 +7,6 @@ const createTrip = async (req, res) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
     const data = jwt.verify(token, JWT_SECRET);
     const user_id = data.user.user_id;
-    console.log("userId:",user_id);
     client.query(`
         INSERT INTO trips (trip_name, trip_origin, trip_destination, trip_desc, trip_departure_datetime, trip_arrival_datetime)
         VALUES ($1, $2, $3, $4, $5, $6)
@@ -51,7 +50,6 @@ const UpdateTrip = async (req, res) => {
             {
                 throw err;
             }
-            console.log("results are:",results.rows);
         })
         res.json({message: "trip updated successfully!"});
     } catch (error) {
@@ -67,7 +65,6 @@ const deleteTrip = async (req, res) => {
             if(err){
                 throw err;
             }
-            console.log(results.rows);
         })
         res.json({message: "Trip deleted successfully."})
     } catch (error) {
@@ -146,12 +143,10 @@ const queryTripsByCommunityId = async (req, res) => {
                 // Handle the error here
                 console.error(err);
             } else {
-                // console.log("results are:", results.rows);
                 const tripIds = new Set();
                 results.rows.map(ele => {
                     tripIds.add(ele.trip_id);
                 });
-                console.log("dekhle trips:", [...tripIds]);
                 getTrips(req, res, tripIds);
             }
         })
@@ -197,7 +192,6 @@ const getTrips = async (req, res, tripIds) => {
                     if (err) {
                         throw err;
                     }
-                    console.log("results are:",results.rows)
                     res.json({ results: results.rows });
                 }
             );
