@@ -15,7 +15,6 @@ const createTrip = async () => {
     );
     `;
     await client.query(query);
-  //   console.log('Table "users" created successfully');
   } catch (error) {
     console.error('Error creating table:',error);
   }
@@ -71,25 +70,7 @@ const link_user_to_trip = async () => {
     console.error('Error creating table:',error);
   }
 }
-
-//friendship table
-const link_user_to_user = async () => {
-  try {
-    const query = `
-    CREATE TABLE IF NOT EXISTS friendship (
-      friendship_id SERIAL PRIMARY KEY,
-      user1_id INT,
-      user2_id INT
-  );     
-  `;
-  await client.query(query);
-  // console.log('Table "users" created successfully');
-  } 
-  catch (error) {
-    console.error('Error creating table:',error);
-  }
-}
   
 module.exports = {
-    createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip, link_user_to_user
+    createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip
 };
