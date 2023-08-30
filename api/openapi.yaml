@@ -762,6 +762,8 @@ components:
           type: string
         user_email:
           type: string
+        user_password:
+          type: string
 
     UserCreate:
       type: object
@@ -773,6 +775,8 @@ components:
         user_mobile:
           type: string
         user_email:
+          type: string
+        user_password:
           type: string
       required:
         - user_name
@@ -788,6 +792,8 @@ components:
         user_mobile:
           type: string
         user_email:
+          type: string
+        user_password:
           type: string
 
 
@@ -1037,11 +1043,17 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.google.com/o/oauth2/v2/auth
+          tokenUrl: https://accounts.google.com/o/oauth2/token
 
-
-
-
-
+          scopes:
+            https://www.googleapis.com/auth/userinfo.email: Access to user's email.
+            https://www.googleapis.com/auth/userinfo.profile: Access to user's profile information.
+      bearerFormat: JWT
 
 
 
