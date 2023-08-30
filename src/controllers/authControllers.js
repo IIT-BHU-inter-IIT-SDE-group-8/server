@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const {client} = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
+const sendTrue = require('../utils/sendTrue.js');
+const { ErrorHandler } = require("../middleware/error.js");
 
 const login = async (req, res, next) => {
     try {
@@ -26,7 +28,7 @@ const login = async (req, res, next) => {
                 // Store the authToken in a cookie
                 res.cookie('authToken', authToken, { httpOnly: true });
 
-                return sendTrue(res, 200, "Login successful");
+                return sendTrue(res, 200,authToken, "Login successful");
             } else {
                 return next(new ErrorHandler("Please try to login with correct credentials",401));
             }
@@ -71,7 +73,7 @@ const register = async (req, res, next) => {
             // Store the authToken in a cookie
             res.cookie('authToken', authToken, { httpOnly: true });
             
-            return sendTrue(res, true, 201, "You are now registered. Please log in");
+            return sendTrue(res, 201, "You are now registered. Please log in");
         });
     } catch (error) {
         next(error);
