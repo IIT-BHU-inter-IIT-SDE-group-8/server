@@ -29,9 +29,6 @@ const createTrip = async (req, res) => {
                     if (err) {
                         throw err;
                     }
-
-                    // const message = "Trip created successfully";
-                    // res.json({ message });
                 }
             );
         }
