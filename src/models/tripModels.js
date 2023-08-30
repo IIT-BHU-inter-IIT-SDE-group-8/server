@@ -31,7 +31,6 @@ const trip_link_to_community = async () => {
   );  
   `;
   await client.query(query);
-  // console.log('Table "users" created successfully');
   } catch (error) {
     console.error('Error creating table:',error);
   }
@@ -48,7 +47,6 @@ const link_user_to_community = async () => {
   );   
   `;
   await client.query(query);
-  // console.log('Table "users" created successfully');
   } catch (error) {
     console.error('Error creating table:',error);
   }
@@ -65,7 +63,6 @@ const link_user_to_trip = async () => {
   );    
   `;
   await client.query(query);
-  // console.log('Table "users" created successfully');
   } catch (error) {
     console.error('Error creating table:',error);
   }
