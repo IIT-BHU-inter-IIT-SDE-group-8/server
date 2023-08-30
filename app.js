@@ -7,11 +7,11 @@ const app = express();
 const initializePassport = require('./src/middleware/configPassport')
 const bodyParser = require('body-parser');
 const path = require('path');
-const { errorMiddleware } = require('./src/middleware/error.js');
+const {errorMiddleware} = require('./middleware/error');
 // const flash = require("express-flash");
 
 const userRouter = require('./src/routes/auth_routes');
-const communityRouter = require("./src/routes/communityRouter.js")
+
 //Additional middlewares
 app.use(express.json())
 app.use(cookieParser());
@@ -30,11 +30,11 @@ app.use(
 
 // Passport
 initializePassport(passport);
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
     done(null, user)
 })
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
     done(null, user);
 })
 
@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: false }));
 
 //Router
 app.use("/users", userRouter);
-app.use("/communities", communityRouter);
+
 
 // Funtion inside passport which initializes passport
 app.use(passport.initialize());
