@@ -75,7 +75,7 @@ const deleteTrip = async (req, res, next) => {
     }
 }
 
-const queryTripsByCommunityId = async (req, res, next) => {
+const getTripsByCommunityId = async (req, res, next) => {
     // Collect unique dates, origins, and destinations
     const tripIds = new Set();
     const community_id = req.params.community_id;
@@ -84,83 +84,94 @@ const queryTripsByCommunityId = async (req, res, next) => {
     const user_id = data.user.id;
     
     try {
-        if(community_id !== undefined)
-        {
-            let sqlQuery = `
-            SELECT DISTINCT CT.trip_id
-            FROM community_trip CT
-            WHERE CT.community_id = ${community_id}
-            `;
-    
-            // Execute the SQL query
-            client.query(sqlQuery, (err, results) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ error: 'An error occurred while querying the database' });
-                }
-    
-                results.rows.forEach((row) => {
-                    tripIds.add(row.trip_id);
-                });
-    
-                getTrips(req, res, tripIds);
+
+        let sqlQuery = `
+        SELECT DISTINCT CT.trip_id
+        FROM community_trip CT
+        WHERE CT.community_id = ${community_id}
+        `;
+
+        // Execute the SQL query
+        client.query(sqlQuery, (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'An error occurred while querying the database' });
+            }
+
+            results.rows.forEach((row) => {
+                tripIds.add(row.trip_id);
             });
-        }
-        else if(community_id === undefined){
-            
-            client.query(`WITH UserFriends AS (
-                SELECT DISTINCT user2_id AS friend_id
-                FROM friendship
-                WHERE user1_id = $1
-                UNION
-                SELECT DISTINCT user1_id AS friend_id
-                FROM friendship
-                WHERE user2_id = $1
-            )
-            
-            SELECT DISTINCT UT.trip_id
-            FROM user_trip UT
-            WHERE UT.user_id = $1
-                OR UT.user_id IN (
-                    SELECT UC.user_id
-                    FROM user_community UC
-                    WHERE UC.community_id IN (
-                        SELECT UC2.community_id
-                        FROM user_community UC2
-                        WHERE UC2.user_id = $1
-                    )
-                )
-                OR UT.user_id IN (
-                    SELECT friend_id
-                    FROM UserFriends
-                )
-            UNION
-            SELECT DISTINCT CT.trip_id
-            FROM community_trip CT
-            WHERE CT.community_id IN (
-                SELECT UC.community_id
-                FROM user_community UC
-                WHERE UC.user_id = $1
-            );        
-            `,[user_id],(err,results)=>{
-                if (err) {
-                    // Handle the error here
-                    console.error(err);
-                } else {
-                    const tripIds = new Set();
-                    results.rows.map(ele => {
-                        tripIds.add(ele.trip_id);
-                    });
-                    getTrips(req, res, tripIds);
-                }
-            })
-        }
+
+            queryTrips(req, res, tripIds);
+        });
+
     } catch (error) {
         next(error);
     }
 };
 
-const getTrips = async (req, res, tripIds) => {
+const getAlltrips = async (req, res, next) => {
+    const tripIds = new Set();
+    // const community_id = req.params.community_id;
+    const token = req.header('auth-token');
+    const data = jwt.verify(token, JWT_SECRET);
+    const user_id = data.user.id;
+    
+    try {
+            
+        client.query(`WITH UserFriends AS (
+            SELECT DISTINCT user2_id AS friend_id
+            FROM friendship
+            WHERE user1_id = $1
+            UNION
+            SELECT DISTINCT user1_id AS friend_id
+            FROM friendship
+            WHERE user2_id = $1
+        )
+        
+        SELECT DISTINCT UT.trip_id
+        FROM user_trip UT
+        WHERE UT.user_id = $1
+            OR UT.user_id IN (
+                SELECT UC.user_id
+                FROM user_community UC
+                WHERE UC.community_id IN (
+                    SELECT UC2.community_id
+                    FROM user_community UC2
+                    WHERE UC2.user_id = $1
+                )
+            )
+            OR UT.user_id IN (
+                SELECT friend_id
+                FROM UserFriends
+            )
+        UNION
+        SELECT DISTINCT CT.trip_id
+        FROM community_trip CT
+        WHERE CT.community_id IN (
+            SELECT UC.community_id
+            FROM user_community UC
+            WHERE UC.user_id = $1
+        );        
+        `,[user_id],(err,results)=>{
+            if (err) {
+                // Handle the error here
+                console.error(err);
+            } else {
+                const tripIds = new Set();
+                results.rows.map(ele => {
+                    tripIds.add(ele.trip_id);
+                });
+                queryTrips(req, res, tripIds);
+            }
+        })
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+const queryTrips = async (req, res, tripIds) => {
     const uniqueDates = new Set();
     const uniqueOrigins = new Set();
     const uniqueDestinations = new Set();
@@ -208,4 +219,4 @@ const getTrips = async (req, res, tripIds) => {
     }
 }
 
-module.exports = { createTrip, queryTripsByCommunityId, UpdateTrip, deleteTrip }
+module.exports = { createTrip, getTripsByCommunityId, UpdateTrip, deleteTrip, getAlltrips }
