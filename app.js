@@ -33,11 +33,11 @@ app.use(
 
 // Passport
 initializePassport(passport);
-passport.serializeUser(function (user, done) {
+passport.serializeUser(function(user, done) {
     done(null, user)
 })
 
-passport.deserializeUser(function (user, done) {
+passport.deserializeUser(function(user, done) {
     done(null, user);
 })
 
