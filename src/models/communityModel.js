@@ -1,7 +1,9 @@
 
 const client = require("../config/configDB");
 
-export const createCommunitiesTable = () => {
+
+
+const createCommunitiesTable = () => {
 
     client.query(`
             CREATE TABLE IF NOT EXISTS communities (
@@ -21,7 +23,7 @@ export const createCommunitiesTable = () => {
 }
 
 
-export const createCommunitiesTripsTable = () => {
+const createCommunitiesTripsTable = () => {
     client.query(`
         CREATE TABLE IF NOT EXISTS community_trips (
             community_trips_id SERIAL PRIMARY KEY,
@@ -39,7 +41,4 @@ export const createCommunitiesTripsTable = () => {
     });
 }
 
-
-
-
-
+module.exports = { createCommunitiesTripsTable, createCommunitiesTable }

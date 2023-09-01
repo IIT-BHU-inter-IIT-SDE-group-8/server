@@ -1,14 +1,12 @@
 const community_trips_cache = [];
 const community_cache = [];
 //TODO: create a community cache
-
-
-
+//TODO: return results using the utils defined by Varun
 const client = require("../config/configDB");
 
 
-export const getAllCommunities = async (req, res) => {
-    client.query("SELECT * FROM `communities`", function(error, results, fields) {
+const getAllCommunities = async (req, res) => {
+    client.query("SELECT * FROM communities", function(error, results,) {
         if (!error) {
             res.status(200).json(results);
         } else {
@@ -20,14 +18,14 @@ export const getAllCommunities = async (req, res) => {
     });
 };
 
-export const createCommunity = async (req, res) => {
+const createCommunity = async (req, res) => {
     client.query(
         "INSERT INTO `communities` (community_name, community_desc) VALUES (?, ? )",
         [
             req.body.community_name,
             req.body.community_desc,
         ],
-        function(error, results, fields) {
+        function(error, results) {
             if (!error) {
                 res.status(201).send(results);
             } else {
@@ -42,12 +40,12 @@ export const createCommunity = async (req, res) => {
 
     )
 }
-export const getCommunityById = async () => {
+const getCommunityById = async (req, res) => {
 
 
-    client.query("SELECT *  FROM `communities` WHERE community_id = ?"
-        , req.params.community_id,
-        function(error, results, fields) {
+    client.query("SELECT *  FROM communities WHERE community_id = $1"
+        , [req.params.community_id],
+        function(error, results) {
             if (!error) {
                 res.status(200).json(results);
             } else {
@@ -58,36 +56,32 @@ export const getCommunityById = async () => {
             }
         })
 }
-export const updateCommunity = async (req, res) => {
+const updateCommunity = async (req, res) => {
     client.query(
-        "UPDATE `communities` SET community_name = ?, community_desc= ? WHERE id = ?",
+        "UPDATE communities SET community_name = $1, community_desc= $2 WHERE community_id =$3",
         [
             req.body.community_name,
             req.body.community_desc,
             req.params.community_id
         ],
-        function(error, results, fields) {
+        function(error, results) {
             if (!error) {
                 res.status(204).send(results);
-            } else if (results.length == 0) {
-                res.status(404).json({
-                    code: 404,
-                    message: "community not found",
-                });
-            } else {
+            }
+            else {
                 res.status(400).json({ code: 400, message: "invalid input", })
             }
         }
     );
 };
 
-export const deleteCommunity = async (req, res) => {
+const deleteCommunity = async (req, res) => {
     client.query(
-        "DELETE FROM `communities` WHERE id = ?",
-        req.params.community_id,
-        function(error, results, fields) {
+        "DELETE FROM communities WHERE community_id = $1",
+        [req.params.community_id],
+        function(error, results) {
             if (!error) {
-                res.status(204);
+                res.status(204).json({ code: 204, message: "community deleted successfully" });
             } else {
                 res.status(400).json({
                     code: 400,
@@ -98,16 +92,20 @@ export const deleteCommunity = async (req, res) => {
     );
 };
 
-export const getAllTripsOfCommunity = async (req, res) => {
+const getAllTripIdsOfCommunity = async (req, res) => {
 
+    client.query(`
+SELECT trips.*
+FROM trips
+INNER JOIN community_trips ON trips.trip_id = community_trips.trip_id
+WHERE community_trips.community_id = $1;
+`
+        , [req.params.community_id],
 
-    client.query("SELECT trip_id FROM `community_trips` WHERE community_id = ?"
-        , req.params.community_id,
-
-        function(error, results, fields) {
-            if (!error && results.length() != 0) {
+        function(error, results) {
+            if (!error && results.rows.length != 0) {
                 res.status(201).send(results);
-            } else if (results.length() == 0) {
+            } else if (results.rows.length == 0) {
                 res.status(400).json({
                     code: 400,
                     message: "no trips present in the community",
@@ -124,48 +122,52 @@ export const getAllTripsOfCommunity = async (req, res) => {
     )
 }
 
-export const addTripToCommunity = async (req, res) => {
+const addTripToCommunity = async (req, res) => {
 
-    if (communityContainsTrip(req.params.community_id, req.params.trip_id)) {
-
+    const entryIsInDB = await communityContainsTrip(req.params.community_id, req.params.trip_id)
+    if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "trip already part of community" })
 
     }
-
-    client.query(
-        "INSERT INTO `community_trips` WHERE community_id = ?, trip_id = ?", req.params.community_id, req.params.trip_id,
-        function(error, results, fields) {
-            if (!error) {
-                res.status(201).send(results);
-            } else {
-                console.log(error);
-                res.status(400).json({
-                    code: 400,
-                    message: "invalid input",
-                });
+    else {
+        client.query(
+            "INSERT INTO community_trips (community_id, trip_id) VALUES ($1,$2)", [req.params.community_id, req.params.trip_id],
+            function(error, results) {
+                if (!error) {
+                    res.status(201).send(results);
+                } else {
+                    console.log(error);
+                    res.status(400).json({
+                        code: 400,
+                        message: "invalid input",
+                    });
+                }
             }
-        }
-    )
+        )
+
+
+    }
 }
 
-export const removeTripFromCommunity = async (req, res) => {
+const removeTripFromCommunity = async (req, res) => {
 
 
     if (!communityContainsTrip(req.params.community_id, req.params.trip_id)) {
-        community_trips_cache = removeStringFromArray(community_trips_cache, string(req.params.community_id) + "-" + string(req.params.trip_id))
         res.status(404).json({ code: 404, message: "trip not part of community" })
     }
 
     client.query(
-        "DELETE FROM `community_trips` WHERE community_id = ?, trip_id = ?",
-        req.params.community_id, req.params.trip_id,
-        function(error, results, fields) {
+        "DELETE FROM community_trips WHERE community_id = $1 AND trip_id = $2",
+        [req.params.community_id, req.params.trip_id],
+        function(error, results) {
             if (!error) {
+                removeStringFromArray(community_trips_cache, String(req.params.community_id) + "-" + String(req.params.trip_id))
                 res.status(204).json({
                     code: 204,
                     message: "trip removed from the community successfully"
                 });
             } else {
+                console.log(error)
                 res.status(500).json({
                     code: 500,
                     message: "unexpected error",
@@ -184,28 +186,33 @@ export const removeTripFromCommunity = async (req, res) => {
 
 const communityContainsTrip = async (community_id, trip_id) => {
     let contains = false;
-
-    if (community_trips_cache.includes(string(community_id) + '-' + string(trip_id))) {
+    const isInCache = community_trips_cache.includes(String(community_id) + '-' + String(trip_id))
+    if (isInCache) {
         contains = true;
     }
     else {
-
-        client.query("SELECT * FROM `community_trips` WHERE community_id = ?, trip_id = ?",
-            community_id, trip_id, function(error, results, fields) {
-
-                if (!error) {
-                    contains = true
-                    community_trips_cache.push(string(community_id) + '-' + string(trip_id))
-                }
-                else if (results.length != 0) {
-                    contains = true
-                    community_trips_cache.push(string(community_id) + '-' + string(trip_id))
-                }
-                else { contains = false }
+        try {
+            const results = await client.query("SELECT * FROM community_trips WHERE community_id = $1 AND trip_id = $2",
+                [community_id, trip_id])
+            if (results.rows.length != 0) {
+                contains = true
+                community_trips_cache.push(String(community_id) + '-' + String(trip_id))
             }
-        )
+            else if (results.rows.length == 0) {
+                contains = false
+            }
+
+        }
+
+        catch (error) {
+
+            console.log("error occurred while checking if entry already exists in community_trips table" + error)
+
+        }
 
     }
+
+    return contains;
 }
 
 
@@ -218,3 +225,5 @@ function removeStringFromArray(array, stringToRemove) {
 
     return array;
 }
+
+module.exports = { createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripIdsOfCommunity, removeTripFromCommunity, addTripToCommunity }

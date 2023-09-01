@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const client = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
 const sendTrue = require('../utils/sendTrue.js');
-const { ErrorHandler } = require("../../middleware/error.js");
+const { ErrorHandler } = require("../middleware/error.js");
 
 const login = async (req, res) => {
     const { email, password } = req.body;

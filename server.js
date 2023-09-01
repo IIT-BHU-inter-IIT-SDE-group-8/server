@@ -12,10 +12,15 @@ const bodyParser = require('body-parser');
 const userRouter = require('./src/routes/auth_routes');
 const PORT = process.env.PORT || 3000;
 const { createCommunitiesTable, createCommunitiesTripsTable } = require("./src/models/communityModel.js")
+const {createTripsTable, createUserTripTable, createUserCommunityTable} = require("./src/models/tripModel.js")
 // Database Models
 createUsersTable();
+createTripsTable();
 createCommunitiesTable();
+createUserTripTable()
+createUserTripTable()
 createCommunitiesTripsTable();
+createUserCommunityTable()
 
 
 
