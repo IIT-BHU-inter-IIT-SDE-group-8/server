@@ -1,6 +1,4 @@
 const { client } = require('../config/configDB')
-const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET
 
 const createTrip = async (req, res, next) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
