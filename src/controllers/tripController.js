@@ -111,11 +111,7 @@ const getTripsByCommunityId = async (req, res, next) => {
 };
 
 const getAlltrips = async (req, res, next) => {
-    // const tripIds = new Set();
-    // const community_id = req.params.community_id;
-    // const token = req.header('auth-token');
-    // const data = jwt.verify(token, JWT_SECRET);
-    // const user_id = data.user.id;
+
     const user_id = req.param.user_id;
 
     try {
@@ -221,10 +217,25 @@ const queryTrips = async (req, res, tripIds) => {
 }
 
 const getAllTripJoinRequests = async (req, res, next) => {
+    const trip_id = req.params.trip_id;
+    const user_id = req.params.user_id;
     try {
+        client.query(`
+        SELECT jr.user_id
+        FROM join_requests jr
+        JOIN user_trip ut ON jr.trip_id = ut.trip_id
+        WHERE jr.trip_id = $1 
+              AND ut.user_id = $2 
+              AND ut.is_admin = TRUE;
         
+        `,[trip_id, user_id],(err, results)=>{
+            if(err){
+                throw err;
+            }
+            res.status(200).json({results: results.rows})
+        })
     } catch (error) {
-        
+        next(error);
     }
 }
 
