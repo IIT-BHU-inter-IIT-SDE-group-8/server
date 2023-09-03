@@ -54,7 +54,7 @@ const UpdateTrip = async (req, res, next) => {
                 throw err;
             }
         })
-        res.json({message: "trip updated successfully!"});
+        res.status(200).json({message: "trip updated successfully!"});
     } catch (error) {
         next(error);
     }
@@ -111,12 +111,13 @@ const getTripsByCommunityId = async (req, res, next) => {
 };
 
 const getAlltrips = async (req, res, next) => {
-    const tripIds = new Set();
+    // const tripIds = new Set();
     // const community_id = req.params.community_id;
-    const token = req.header('auth-token');
-    const data = jwt.verify(token, JWT_SECRET);
-    const user_id = data.user.id;
-    
+    // const token = req.header('auth-token');
+    // const data = jwt.verify(token, JWT_SECRET);
+    // const user_id = data.user.id;
+    const user_id = req.param.user_id;
+
     try {
             
         client.query(`WITH UserFriends AS (
@@ -210,7 +211,7 @@ const queryTrips = async (req, res, tripIds) => {
                     if (err) {
                         throw err;
                     }
-                    res.json({ results: results.rows });
+                    res.status(200).json({ results: results.rows });
                 }
             );
         });

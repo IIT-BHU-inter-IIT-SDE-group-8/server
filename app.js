@@ -11,8 +11,9 @@ const {errorMiddleware} = require('./src/middleware/error');
 // const flash = require("express-flash");
 
 const communityRouter = require('./src/routes/community_routes');
-const userRouter = require('./src/routes/auth_routes');
+const authRouter = require('./src/routes/auth_routes');
 const tripRouter = require('./src/routes/trip_routes');
+const userRouter = require('./src/routes/user_routes');
 
 //Additional middlewares
 app.use(express.json())
@@ -45,9 +46,10 @@ app.use(express.urlencoded({ extended: false }));
 // app.set("view engine", "ejs");
 
 //Router
-app.use( "/", userRouter);
+app.use( "/", authRouter);
 app.use('/trips',tripRouter);
 app.use('/communities',communityRouter)
+app.use('/users',userRouter);
 
 
 // Funtion inside passport which initializes passport
