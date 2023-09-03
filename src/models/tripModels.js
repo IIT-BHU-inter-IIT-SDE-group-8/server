@@ -59,7 +59,8 @@ const link_user_to_trip = async () => {
     CREATE TABLE IF NOT EXISTS user_trip (
       user_trip_id SERIAL PRIMARY KEY,
       user_id INT,
-      trip_id INT
+      trip_id INT,
+      is_admin BOOLEAN
   );    
   `;
   await client.query(query);
@@ -67,7 +68,23 @@ const link_user_to_trip = async () => {
     console.error('Error creating table:',error);
   }
 }
+
+//trip join request table
+const join_request = async () => {
+  try {
+    const query = `
+    CREATE TABLE IF NOT EXISTS join_requests (
+      join_request_id SERIAL PRIMARY KEY,
+      user_id INT,
+      trip_id INT
+    );
+    `
+    await client.query(query);
+  } catch (error) {
+    console.log("error creating table:",error);
+  }
+}
   
 module.exports = {
-    createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip
+    createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip, join_request
 };
