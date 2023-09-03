@@ -220,4 +220,12 @@ const queryTrips = async (req, res, tripIds) => {
     }
 }
 
-module.exports = { createTrip, getTripsByCommunityId, UpdateTrip, deleteTrip, getAlltrips }
+const getAllTripJoinRequests = async (req, res, next) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+}
+
+module.exports = { createTrip, getTripsByCommunityId, UpdateTrip, deleteTrip, getAlltrips, getAllTripJoinRequests }
