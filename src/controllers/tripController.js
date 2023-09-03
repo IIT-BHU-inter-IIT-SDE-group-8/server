@@ -3,10 +3,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
 
 const createTrip = async (req, res, next) => {
-    const token = req.header('auth-token');
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
-    const data = jwt.verify(token, JWT_SECRET);
-    const user_id = data.user.user_id;
     try {
         client.query(`
         INSERT INTO trips (trip_name, trip_origin, trip_destination, trip_desc, trip_departure_datetime, trip_arrival_datetime)
@@ -17,24 +14,10 @@ const createTrip = async (req, res, next) => {
             if (err) {
                 throw err;
             }
-            const trip_id = results.rows[0].trip_id;
 
-            // Step 3: Insert a record into the user_trip table
-            client.query(
-                `
-                INSERT INTO user_trip (trip_id, user_id)
-                VALUES ($1, $2)`,
-                [trip_id, user_id],
-                (err) => {
-                    if (err) {
-                        throw err;
-                    }
-                });
-            }
-        )
-            
+        })
         const message = "Trip created successfully";
-        res.json({ message });
+        res.status(200).json({ message });
     } catch (error) {
         next(error);
     }
@@ -79,9 +62,6 @@ const getTripsByCommunityId = async (req, res, next) => {
     // Collect unique dates, origins, and destinations
     const tripIds = new Set();
     const community_id = req.params.community_id;
-    const token = req.header('auth-token');
-    const data = jwt.verify(token, JWT_SECRET);
-    const user_id = data.user.id;
     
     try {
 
