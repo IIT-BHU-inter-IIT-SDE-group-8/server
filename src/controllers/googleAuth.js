@@ -1,4 +1,4 @@
-const client = require('../config/configDB')
+const {client} = require('../config/configDB')
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
 const { OAuth2Client } = require('google-auth-library');

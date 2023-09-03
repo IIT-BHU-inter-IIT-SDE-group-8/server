@@ -2,14 +2,13 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
 
 const checkAuthenticated = (req, res, next) => {
-    const token = req.header('auth-token');
+    const token = req.cookies['authToken'];
     if(!token)
     {
         res.status(401).send({error : "Please authenticate  using a valid token"})
     }
     try {
         const data = jwt.verify(token, JWT_SECRET);
-        console.log("data:",data);
         req.user = data.user;
         next();
     } catch (error) {
@@ -17,4 +16,4 @@ const checkAuthenticated = (req, res, next) => {
     }
 }
 
-module.exports = checkAuthenticated
+module.exports = {checkAuthenticated}
