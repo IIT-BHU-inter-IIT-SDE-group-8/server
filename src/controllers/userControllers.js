@@ -1,15 +1,22 @@
 const { client } = require('../config/configDB')
 const bcrypt = require("bcrypt");
 
-const getAllUsers = async (res, req, next) => {
+const getAllUsers = async (req, res, next) => {
     try {
-        client.query(`SELECT * from users`,(err,results)=>{
-            console.log(results.rows);
-        })
+        // Assuming you have established a connection to your database (e.g., PostgreSQL) and assigned it to the 'client' variable
+        client.query(`SELECT * from users`, (err, results) => {
+            if (err) {
+                return next(err);
+            }
+            
+            // Send the results as a JSON response
+            res.status(200).json({ result: results.rows });
+        });
     } catch (error) {
         next(error);
     }
-}
+};
+
 
 const updateUser = async (req, res, next) => {
     const user_id = req.param.user_id;
@@ -53,7 +60,7 @@ const link_user_to_trip = async (req, res, next) => {
     const user_id = req.param.user_id;
     const trip_id = req.param.trip_id;
     try {
-        const findAdminQuery = `
+    const findAdminQuery = `
         SELECT user_id
         FROM user_trip
         WHERE trip_id = $1 AND is_admin = TRUE;
@@ -89,7 +96,7 @@ const link_user_to_trip = async (req, res, next) => {
                 const addUserToTripQuery = `
                     INSERT INTO user_trip (user_id, trip_id, is_admin) VALUES ($1, $2, FALSE);
                 `;
-                
+                res.status(200).json({message:"User to linked to trip successfully"})
                 return client.query(addUserToTripQuery, [user_id, trip_id]);
             } else {
                 console.log("The user and the admin are not friends.");
@@ -98,7 +105,7 @@ const link_user_to_trip = async (req, res, next) => {
                 const storeJoinRequestQuery = `
                     INSERT INTO join_requests (user_id, trip_id) VALUES ($1, $2);
                 `;
-                
+                res.status(200).json({message:"User to linked to trip successfully"})
                 return client.query(storeJoinRequestQuery, [user_id, trip_id]);
             }
         })

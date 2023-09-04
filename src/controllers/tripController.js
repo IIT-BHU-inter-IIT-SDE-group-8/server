@@ -21,6 +21,21 @@ const createTrip = async (req, res, next) => {
     }
 }
 
+const getAlltrips = async( req, res, next) => {
+    try {
+        client.query(`SELECT * from trips`, (err, results) => {
+            if (err) {
+                return next(err);
+            }
+            
+            // Send the results as a JSON response
+            res.status(200).json({ result: results.rows });
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 const UpdateTrip = async (req, res, next) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
     const trip_id = req.params.trip_id;
@@ -88,9 +103,9 @@ const getTripsByCommunityId = async (req, res, next) => {
     }
 };
 
-const getAlltrips = async (req, res, next) => {
+const getAllUsertrips = async (req, res, next) => {
 
-    const user_id = req.param.user_id;
+    const user_id = req.params.user_id;
 
     try {
             
@@ -217,4 +232,4 @@ const getAllTripJoinRequests = async (req, res, next) => {
     }
 }
 
-module.exports = { createTrip, getTripsByCommunityId, UpdateTrip, deleteTrip, getAlltrips, getAllTripJoinRequests }
+module.exports = { createTrip, getTripsByCommunityId, UpdateTrip, deleteTrip, getAllUsertrips, getAllTripJoinRequests, getAlltrips }
