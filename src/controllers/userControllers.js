@@ -18,7 +18,7 @@ const updateUser = async (req, res, next) => {
     const secPass = await bcrypt.hash(password, salt);
     try {
         client.query(`
-        UPDATE users SET user_name = $1, user_email = $2, user_password = $3, user_bio = $4, user_mobile = $5
+        UPDATE users SET user_name = $1, user_email = $2, user_password = $3, user_bio = $4, user_mobile = $5 
         WHERE user_id = $6
         `,[name, email, secPass, bio, phone, user_id],(err, results)=>{
             if(err)
@@ -36,7 +36,7 @@ const deleteUser = async (req, res, next) => {
     const user_id = req.param.user_id;
     try {
         client.query(`
-        DELETE FROM users WHERE user_id = $1
+        DELETE FROM users WHERE user_id = $1  
         `,[user_id],(err, results) => {
             if(err)
             {
@@ -84,21 +84,21 @@ const link_user_to_trip = async (req, res, next) => {
         .then(friendshipResult => {
             if (friendshipResult && friendshipResult.rows.length > 0) {
                 console.log("The user and the admin are friends.");
-
+                
                 // If they are friends, add the user to the trip with is_admin as false
                 const addUserToTripQuery = `
                     INSERT INTO user_trip (user_id, trip_id, is_admin) VALUES ($1, $2, FALSE);
                 `;
-
+                
                 return client.query(addUserToTripQuery, [user_id, trip_id]);
             } else {
                 console.log("The user and the admin are not friends.");
-
+                
                 // If they are not friends, store the join request
                 const storeJoinRequestQuery = `
                     INSERT INTO join_requests (user_id, trip_id) VALUES ($1, $2);
                 `;
-
+                
                 return client.query(storeJoinRequestQuery, [user_id, trip_id]);
             }
         })

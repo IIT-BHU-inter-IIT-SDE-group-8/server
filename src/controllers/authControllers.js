@@ -86,6 +86,7 @@ const logout = (req, res) => {
     res.redirect('/users/login');
     return res.status(200).json({ message: "You have been logged out" });
 };
+  
 
 
 
