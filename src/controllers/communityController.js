@@ -1,4 +1,4 @@
-const community_trips_cache = [];
+const community_trips_cache = new Set();
 const community_cache = [];
 //TODO: create a community cache
 //TODO: return results using the utils defined by Varun
@@ -20,7 +20,7 @@ const getAllCommunities = async (req, res) => {
 
 const createCommunity = async (req, res) => {
     client.query(
-        "INSERT INTO `communities` (community_name, community_desc) VALUES (?, ? )",
+        "INSERT INTO communities (community_name, community_desc) VALUES ($1, $2 )",
         [
             req.body.community_name,
             req.body.community_desc,
@@ -92,7 +92,7 @@ const deleteCommunity = async (req, res) => {
     );
 };
 
-const getAllTripIdsOfCommunity = async (req, res) => {
+const getAllTripsOfCommunity = async (req, res) => {
 
     client.query(`
 SELECT trips.*
@@ -161,7 +161,7 @@ const removeTripFromCommunity = async (req, res) => {
         [req.params.community_id, req.params.trip_id],
         function(error, results) {
             if (!error) {
-                removeStringFromArray(community_trips_cache, String(req.params.community_id) + "-" + String(req.params.trip_id))
+                removeElementFromSet(community_trips_cache, String(req.params.community_id) + "-" + String(req.params.trip_id))
                 res.status(204).json({
                     code: 204,
                     message: "trip removed from the community successfully"
@@ -186,7 +186,7 @@ const removeTripFromCommunity = async (req, res) => {
 
 const communityContainsTrip = async (community_id, trip_id) => {
     let contains = false;
-    const isInCache = community_trips_cache.includes(String(community_id) + '-' + String(trip_id))
+    const isInCache = community_trips_cache.has(String(community_id) + '-' + String(trip_id))
     if (isInCache) {
         contains = true;
     }
@@ -196,7 +196,7 @@ const communityContainsTrip = async (community_id, trip_id) => {
                 [community_id, trip_id])
             if (results.rows.length != 0) {
                 contains = true
-                community_trips_cache.push(String(community_id) + '-' + String(trip_id))
+                community_trips_cache.add(String(community_id) + '-' + String(trip_id))
             }
             else if (results.rows.length == 0) {
                 contains = false
@@ -216,14 +216,11 @@ const communityContainsTrip = async (community_id, trip_id) => {
 }
 
 
-function removeStringFromArray(array, stringToRemove) {
-    const index = array.indexOf(stringToRemove);
-
-    if (index !== -1) {
-        array.splice(index, 1);
+function removeElementFromSet(set, elementToRemove) {
+    if (set.has(elementToRemove)) {
+        set.delete(elementToRemove);
     }
-
-    return array;
+    return set;
 }
 
-module.exports = { createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripIdsOfCommunity, removeTripFromCommunity, addTripToCommunity }
+module.exports = { createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }
