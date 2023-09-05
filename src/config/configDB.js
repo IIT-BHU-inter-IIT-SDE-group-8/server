@@ -10,12 +10,8 @@ const client = new Client({
   database: process.env.DB_DATABASE
 })
 
-client.connect()
-  .then(() => {
-    console.log('Connected to the database');
-  })
-  .catch(error => {
-    console.error('Error connecting to the database:', error);
-  });
+client.connect().then(() => {
+    console.log("Connected to Database")
+})
 
 module.exports = {client}

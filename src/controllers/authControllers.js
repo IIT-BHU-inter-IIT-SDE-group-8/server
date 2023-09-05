@@ -30,10 +30,10 @@ const login = async (req, res, next) => {
 
                 return sendTrue(res, 200, "Login successful");
             } else {
-                return next(new ErrorHandler("Please try to login with correct credentials",401));
+                return next(new ErrorHandler("Please try to login with correct credentials", 401));
             }
         } else {
-            return next(new ErrorHandler("No user exists with that email address",404));
+            return next(new ErrorHandler("No user exists with that email address", 404));
         }
     } catch (error) {
         next(error);
@@ -55,7 +55,7 @@ const register = async (req, res, next) => {
         const emailCheckResult = await client.query(emailCheckQuery);
 
         if (emailCheckResult.rows.length > 0) {
-            return next(new ErrorHandler("Email already registered",400));
+            return next(new ErrorHandler("Email already registered", 400));
         }
 
         const insertUserQuery = {
@@ -87,6 +87,7 @@ const logout = (req, res) => {
     return res.status(200).json({ message: "You have been logged out" });
 };
   
+
 
 
 module.exports = { login, register, logout }
