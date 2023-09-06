@@ -124,7 +124,7 @@ WHERE community_trips.community_id = $1;
 
 const addTripToCommunity = async (req, res) => {
 
-    const entryIsInDB = await communityContainsTrip(req.params.community_id, req.params.trip_id)
+    const entryIsInDB = await tableContainsLink("community_trips", req.params.community_id, req.params.trip_id, community_trips_cache)
     if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "trip already part of community" })
 
@@ -184,6 +184,33 @@ const removeTripFromCommunity = async (req, res) => {
 // Utilities
 
 
+const tableContainsLink = async (tableName, id1, id2, cacheName) => {
+    let contains = false;
+    const isInCache = cacheName.has(String(id1) + '-' + String(id2));
+    if (isInCache) {
+        contains = true;
+    } else {
+        try {
+            const results = await client.query(
+                `SELECT * FROM ${tableName} WHERE ${id1} = $1 AND ${id2} = $2`,
+                [id1, id2]
+            );
+            if (results.rows.length !== 0) {
+                contains = true;
+                cacheName.add(String(id1) + '-' + String(id2));
+            } else {
+                contains = false;
+            }
+        } catch (error) {
+            console.log(
+                `Error occurred while checking if entry already exists in ${tableName} table: ` +
+                    error
+            );
+        }
+    }
+    return contains;
+};
+
 const communityContainsTrip = async (community_id, trip_id) => {
     let contains = false;
     const isInCache = community_trips_cache.has(String(community_id) + '-' + String(trip_id))
@@ -203,13 +230,9 @@ const communityContainsTrip = async (community_id, trip_id) => {
             }
 
         }
-
         catch (error) {
-
             console.log("error occurred while checking if entry already exists in community_trips table" + error)
-
         }
-
     }
 
     return contains;

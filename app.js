@@ -12,7 +12,7 @@ const { errorMiddleware } = require('./src/middleware/error');
 
 const communityRouter = require('./src/routes/communityRouter');
 const authRouter = require('./src/routes/auth_routes');
-const tripRouter = require('./src/routes/trip_routes');
+const tripRouter = require('./src/routes/tripRouter');
 const userRouter = require('./src/routes/user_routes');
 
 //Additional middlewares
