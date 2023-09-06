@@ -3,7 +3,8 @@ const community_cache = [];
 //TODO: create a community cache
 //TODO: return results using the utils defined by Varun
 const client = require("../config/configDB");
-
+const tableContainsLink = require("../utils/tabelContainsLink")
+const { removeElementFromSet } = require("../utils/cache")
 
 const getAllCommunities = async (req, res) => {
     client.query("SELECT * FROM communities", function(error, results,) {
@@ -152,7 +153,7 @@ const addTripToCommunity = async (req, res) => {
 const removeTripFromCommunity = async (req, res) => {
 
 
-    if (!communityContainsTrip(req.params.community_id, req.params.trip_id)) {
+    if (!tableContainsLink("community_trips", req.params.community_id, req.params.trip_id, community_trips_cache)) {
         res.status(404).json({ code: 404, message: "trip not part of community" })
     }
 
@@ -184,66 +185,6 @@ const removeTripFromCommunity = async (req, res) => {
 // Utilities
 
 
-const tableContainsLink = async (tableName, id1, id2, cacheName) => {
-    let contains = false;
-    const isInCache = cacheName.has(String(id1) + '-' + String(id2));
-    if (isInCache) {
-        contains = true;
-    } else {
-        try {
-            const results = await client.query(
-                `SELECT * FROM ${tableName} WHERE ${id1} = $1 AND ${id2} = $2`,
-                [id1, id2]
-            );
-            if (results.rows.length !== 0) {
-                contains = true;
-                cacheName.add(String(id1) + '-' + String(id2));
-            } else {
-                contains = false;
-            }
-        } catch (error) {
-            console.log(
-                `Error occurred while checking if entry already exists in ${tableName} table: ` +
-                    error
-            );
-        }
-    }
-    return contains;
-};
 
-const communityContainsTrip = async (community_id, trip_id) => {
-    let contains = false;
-    const isInCache = community_trips_cache.has(String(community_id) + '-' + String(trip_id))
-    if (isInCache) {
-        contains = true;
-    }
-    else {
-        try {
-            const results = await client.query("SELECT * FROM community_trips WHERE community_id = $1 AND trip_id = $2",
-                [community_id, trip_id])
-            if (results.rows.length != 0) {
-                contains = true
-                community_trips_cache.add(String(community_id) + '-' + String(trip_id))
-            }
-            else if (results.rows.length == 0) {
-                contains = false
-            }
-
-        }
-        catch (error) {
-            console.log("error occurred while checking if entry already exists in community_trips table" + error)
-        }
-    }
-
-    return contains;
-}
-
-
-function removeElementFromSet(set, elementToRemove) {
-    if (set.has(elementToRemove)) {
-        set.delete(elementToRemove);
-    }
-    return set;
-}
 
 module.exports = { createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }
