@@ -3,7 +3,8 @@ const community_cache = [];
 //TODO: create a community cache
 //TODO: return results using the utils defined by Varun
 const client = require("../config/configDB");
-
+const tableContainsLink = require("../utils/tabelContainsLink")
+const { removeElementFromSet } = require("../utils/cache")
 
 const getAllCommunities = async (req, res) => {
     client.query("SELECT * FROM communities", function(error, results,) {
@@ -124,7 +125,7 @@ WHERE community_trips.community_id = $1;
 
 const addTripToCommunity = async (req, res) => {
 
-    const entryIsInDB = await communityContainsTrip(req.params.community_id, req.params.trip_id)
+    const entryIsInDB = await tableContainsLink("community_trips", req.params.community_id, req.params.trip_id, community_trips_cache)
     if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "trip already part of community" })
 
@@ -152,7 +153,7 @@ const addTripToCommunity = async (req, res) => {
 const removeTripFromCommunity = async (req, res) => {
 
 
-    if (!communityContainsTrip(req.params.community_id, req.params.trip_id)) {
+    if (!tableContainsLink("community_trips", req.params.community_id, req.params.trip_id, community_trips_cache)) {
         res.status(404).json({ code: 404, message: "trip not part of community" })
     }
 
@@ -184,43 +185,6 @@ const removeTripFromCommunity = async (req, res) => {
 // Utilities
 
 
-const communityContainsTrip = async (community_id, trip_id) => {
-    let contains = false;
-    const isInCache = community_trips_cache.has(String(community_id) + '-' + String(trip_id))
-    if (isInCache) {
-        contains = true;
-    }
-    else {
-        try {
-            const results = await client.query("SELECT * FROM community_trips WHERE community_id = $1 AND trip_id = $2",
-                [community_id, trip_id])
-            if (results.rows.length != 0) {
-                contains = true
-                community_trips_cache.add(String(community_id) + '-' + String(trip_id))
-            }
-            else if (results.rows.length == 0) {
-                contains = false
-            }
 
-        }
-
-        catch (error) {
-
-            console.log("error occurred while checking if entry already exists in community_trips table" + error)
-
-        }
-
-    }
-
-    return contains;
-}
-
-
-function removeElementFromSet(set, elementToRemove) {
-    if (set.has(elementToRemove)) {
-        set.delete(elementToRemove);
-    }
-    return set;
-}
 
 module.exports = { createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }
