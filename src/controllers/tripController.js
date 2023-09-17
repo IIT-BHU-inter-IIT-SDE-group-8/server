@@ -203,4 +203,19 @@ const getAllTripJoinRequests = async (req, res, next) => {
     }
 }
 
-module.exports = { getTripById, createTrip,  updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }
+const getAllTrips = async( req, res, next) => {
+    try {
+        client.query(`SELECT * from trips`, (err, results) => {
+            if (err) {
+                return next(err);
+            }
+            
+            // Send the results as a JSON response
+            res.status(200).json({ result: results.rows });
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = { getTripById, createTrip,  UpdateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests, getAllTripsOfUserAndFriends, queryTrips }
