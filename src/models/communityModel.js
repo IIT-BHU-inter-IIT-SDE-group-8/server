@@ -1,5 +1,5 @@
 
-const { client } = require("../config/configDB");
+const {client} = require("../config/configDB");
 
 
 
