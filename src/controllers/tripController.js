@@ -165,19 +165,19 @@ const queryTrips = async (req, res, tripIds) => {
 const getTripById = (req, res) => {
 
     client.query("SELECT * FROM trips WHERE trip_id = $1", [req.params.trip_id],
-        (error, result) => {
+    (error, result) => {
 
-            if (!error) {
-                res.status(200).json(result)
-            }
-            else {
-                res.status(500).json({
-                    status: 500,
-                    message: "Unknown internal error occurred while getting trip by id"
-                })
-            }
+        if (!error) {
+            res.status(200).json(result)
+        }
+        else {
+            res.status(500).json({
+                status: 500,
+                message: "Unknown internal error occurred while getting trip by id"
+            })
+        }
 
-        })
+    })
 }
 
 const getAllTripJoinRequests = async (req, res, next) => {
