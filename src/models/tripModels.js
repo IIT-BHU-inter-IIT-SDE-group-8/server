@@ -1,4 +1,4 @@
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 
 //create trips table
 const createTrip = async () => {

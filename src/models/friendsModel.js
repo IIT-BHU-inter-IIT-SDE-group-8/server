@@ -1,4 +1,4 @@
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 
 //friendship table
 const link_user_to_user = async () => {

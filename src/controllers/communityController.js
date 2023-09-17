@@ -2,8 +2,7 @@ const community_trips_cache = new Set();
 const community_users_cache = new Set()
 const community_cache = [];
 //TODO: return results using the utils defined by Varun
-//TODO: uncomment the line for community admin from the req.user
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 const { queryTrips } = require('./tripController');
@@ -40,10 +39,9 @@ const createCommunity = async (req, res) => {
                 });
             }
         }
-
-
     )
 }
+
 const getCommunityById = async (req, res) => {
     client.query("SELECT *  FROM communities WHERE community_id = $1"
         , [req.params.community_id],
@@ -58,6 +56,7 @@ const getCommunityById = async (req, res) => {
             }
         })
 }
+
 const updateCommunity = async (req, res) => {
     client.query(
         "UPDATE communities SET community_name = $1, community_desc= $2 WHERE community_id =$3",
@@ -160,7 +159,6 @@ const addTripToCommunity = async (req, res) => {
 }
 
 const removeTripFromCommunity = async (req, res) => {
-
 
     if (!tableContainsLink("community_trips", req.params.community_id, req.params.trip_id, community_trips_cache)) {
         res.status(404).json({ code: 404, message: "trip not part of community" })
