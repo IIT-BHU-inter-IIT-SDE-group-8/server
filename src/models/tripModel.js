@@ -80,6 +80,22 @@ const createUserTripTable = async () => {
     }
 }
 
+//trip join request table
+const createTripJoinRequestTable = async () => {
+    try {
+      const query = `
+      CREATE TABLE IF NOT EXISTS join_requests (
+        join_request_id SERIAL PRIMARY KEY,
+        user_id INT,
+        trip_id INT
+      );
+      `
+      await client.query(query);
+    } catch (error) {
+      console.log("error creating table:",error);
+    }
+}
+
 module.exports = {
-    createTripsTable, createUserCommunityTable, createCommunityTripTable, createUserTripTable, createUserTripTable
+    createTripsTable, createUserCommunityTable, createCommunityTripTable, createUserTripTable, createUserTripTable, createTripJoinRequestTable
 };

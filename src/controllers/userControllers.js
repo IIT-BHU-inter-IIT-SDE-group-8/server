@@ -153,9 +153,8 @@ WHERE user_trip.user_id = $1;
                 res.status(500).json({ status: 500, message: "Unknown error while getting all the trips of user" })
             }
         })
-
-
 }
+
 const unlinkTripAndUser = (req, res) => {
 
     if (!tableContainsLink("user_trip", "user_id", "trip_id", req.params.user_id, req.params.trip_id, user_trip_cache)) {

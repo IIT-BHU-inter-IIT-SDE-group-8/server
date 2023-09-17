@@ -11,7 +11,7 @@ const { errorMiddleware } = require('./src/middleware/error');
 // const flash = require("express-flash");
 
 const communityRouter = require('./src/routes/communityRouter');
-const authRouter = require('./src/routes/auth_routes');
+const authRouter = require('./src/routes/authRouter');
 const tripRouter = require('./src/routes/tripRouter');
 const userRouter = require('./src/routes/userRouter');
 const communityRequestRouter = require('./src/routes/communityRequestRouter.js')
