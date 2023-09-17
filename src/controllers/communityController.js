@@ -2,8 +2,7 @@ const community_trips_cache = new Set();
 const community_users_cache = new Set()
 const community_cache = [];
 //TODO: return results using the utils defined by Varun
-//TODO: uncomment the line for community admin from the req.user
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 const { queryTrips } = require('./tripController');
@@ -187,7 +186,7 @@ const removeTripFromCommunity = async (req, res) => {
 }
 
 
-
+// Utilities
 
 
 
