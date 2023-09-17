@@ -1,4 +1,4 @@
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 
 // Create the users table
 const createUsersTable = async () => {
