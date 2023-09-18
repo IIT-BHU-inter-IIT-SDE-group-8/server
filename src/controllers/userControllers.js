@@ -78,7 +78,6 @@ const link_user_to_trip = async (req, res, next) => {
 
     if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "User already part of trip" })
-
     }
     else {
         try {
@@ -158,9 +157,8 @@ WHERE user_trip.user_id = $1;
                 res.status(500).json({ status: 500, message: "Unknown error while getting all the trips of user" })
             }
         })
-
-
 }
+
 const unlinkTripAndUser = (req, res) => {
 
     if (!tableContainsLink("user_trip", req.params.user_id, req.params.trip_id, user_trip_cache)) {
@@ -182,7 +180,4 @@ const unlinkTripAndUser = (req, res) => {
         })
 }
 
-
-
-
-module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip };
+module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip, linkUserToCommunity };

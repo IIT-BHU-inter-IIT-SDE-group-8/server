@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getAllUsers, updateUser, deleteUser, link_user_to_trip, getUserById, getAllTripsOfUser, unlinkTripAndUser } = require('../controllers/userControllers');
-const { getAlltrips, getAllTripJoinRequests, getTripById } = require('../controllers/tripController');
+const { getAllTripJoinRequests, getTripById } = require('../controllers/tripController');
 
 router.get('/', getAllUsers);
 router.route("/:user_id").get(getUserById).put(updateUser).delete(deleteUser);

@@ -1,7 +1,8 @@
-const {pool} = require('../models/configDB')
+const {client} = require('../config/configDB')
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
 const { OAuth2Client } = require('google-auth-library');
+
 
 const googleClient = new OAuth2Client({
     clientId: process.env.CLIENT_ID,
@@ -9,11 +10,16 @@ const googleClient = new OAuth2Client({
     redirectUri: 'http://localhost:4000/auth/google/callback',
 });
 
-const auth = (req, res) => {
-    res.redirect(googleClient.generateAuthUrl({
-        access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
-    }));
+const auth = (req, res, next) => {
+    try {
+        res.redirect(googleClient.generateAuthUrl({
+            access_type: 'offline',
+            scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+        }));
+    } catch (error) {
+        next(error);
+    }
+
 };
 
 const callback = async (req, res) => {
@@ -34,7 +40,7 @@ const callback = async (req, res) => {
         const { email, name, at_hash } = userResponse.payload;
 
         // Check if the user already exists in your database
-        const userQuery = await pool.query(
+        const userQuery = await client.query(
             `SELECT * FROM users WHERE user_email = $1`,
             [email]
         );
@@ -47,14 +53,18 @@ const callback = async (req, res) => {
                 }
             }
             const authToken = jwt.sign(data, JWT_SECRET);
+
+            // Set the authToken cookie
+            res.cookie('authToken', authToken, { httpOnly: true });
+
             return res.json({ success: true, authToken });
         }
 
         // If the user doesn't exist, create a new user
-        const newUserQuery = await pool.query(
+        const newUserQuery = await client.query(
             `INSERT INTO users (user_name, user_email, user_password)
-         VALUES ($1, $2, $3)
-         RETURNING user_id`,
+            VALUES ($1, $2, $3)
+            RETURNING user_id`,
             [name, email, at_hash]
         );
 
@@ -66,12 +76,15 @@ const callback = async (req, res) => {
         }
         const authToken = jwt.sign(data, JWT_SECRET);
 
+        // Set the authToken cookie
+        res.cookie('authToken', authToken, { httpOnly: true });
+
         return res.json({ success: true, authToken });
 
     } catch (error) {
-        console.error("Google authentication error:", error);
-        res.status(500).json({ error: 'Internal Server error' });
+        next(error);
     }
 }
+
 
 module.exports = { auth, callback };
