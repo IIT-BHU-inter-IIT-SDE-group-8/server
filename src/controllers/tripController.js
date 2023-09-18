@@ -118,7 +118,7 @@ const queryTrips = async (req, res, tripIds) => {
     const uniqueOrigins = new Set();
     const uniqueDestinations = new Set();
     try {
-        client.query(`SELECT * FROM trips`, (err, results) => {
+        client.query(`SELECT * FROM trips WHERE trip_id = $1`,[tripIds], (err, results) => {
 
             if (err) {
                 throw err;
@@ -219,7 +219,7 @@ const getAllTrips = async( req, res, next) => {
 
 const AllowOrDenyTripJoinRequest = async (req, res, next) => {
     try {
-        
+
         const allow = req.body.allow;
         const userId = req.body.user_id;
         const tripId = req.params.trip_id;
