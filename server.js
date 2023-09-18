@@ -1,20 +1,20 @@
 const app = require('./app.js');
 const { createUsersTable } = require("./src/models/userModel");
 const {
-  createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip, join_request
+  createTrip, createCommunityTripTable, createUserCommunityTable, createUserTripTable, createTripJoinRequestTable
 } = require('./src/models/tripModels');
-const { link_user_to_user } = require('./src/models/friendsModel.js');
+const { createFriendsTable } = require('./src/models/friendsModel.js');
 const PORT = process.env.PORT || 4000;
 
 // Database Models
 createUsersTable();
 createUsersTable();
 createTrip();
-trip_link_to_community();
-link_user_to_community();
-link_user_to_trip();
-link_user_to_user();
-join_request();
+createCommunityTripTable();
+createUserCommunityTable();
+createUserTripTable();
+createFriendsTable();
+createTripJoinRequestTable();
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

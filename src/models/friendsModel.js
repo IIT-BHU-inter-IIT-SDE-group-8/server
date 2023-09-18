@@ -1,7 +1,7 @@
 const {client} = require("../config/configDB");
 
 //friendship table
-const link_user_to_user = async () => {
+const createFriendsTable = async () => {
     try {
         const query = `
       CREATE TABLE IF NOT EXISTS friendship (
@@ -17,4 +17,4 @@ const link_user_to_user = async () => {
     }
 }
 
-module.exports = { link_user_to_user }
+module.exports = { createFriendsTable }
