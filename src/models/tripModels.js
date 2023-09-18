@@ -27,7 +27,9 @@ const createCommunityTripTable = async () => {
     CREATE TABLE IF NOT EXISTS community_trip (
       community_trip_id SERIAL PRIMARY KEY,
       community_id INT,
-      trip_id INT
+      trip_id INT,
+      FOREIGN KEY (community_id) REFERENCES communities(community_id),
+      FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
   );
   `;
         await client.query(query);
@@ -43,7 +45,9 @@ const createUserCommunityTable = async () => {
     CREATE TABLE IF NOT EXISTS community_users (
       user_community_id SERIAL PRIMARY KEY,
       user_id INT,
-      community_id INT
+      community_id INT,
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
+      FOREIGN KEY (community_id) REFERENCES communities(community_id)
   );
   `;
         await client.query(query);
@@ -60,7 +64,9 @@ const createUserTripTable = async () => {
       user_trip_id SERIAL PRIMARY KEY,
       user_id INT,
       trip_id INT,
-      is_admin BOOLEAN
+      is_admin BOOLEAN,
+      FOREIGN KEY (trip_id) REFERENCES trips(trip_id),
+      FOREIGN KEY (user_id) REFERENCES users(user_id)
   );
   `;
         await client.query(query);
@@ -76,7 +82,9 @@ const createTripJoinRequestTable = async () => {
     CREATE TABLE IF NOT EXISTS join_requests (
       join_request_id SERIAL PRIMARY KEY,
       user_id INT,
-      trip_id INT
+      trip_id INT,
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
+      FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
     );
     `
         await client.query(query);
