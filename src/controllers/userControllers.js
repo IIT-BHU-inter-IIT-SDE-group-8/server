@@ -73,7 +73,6 @@ const link_user_to_trip = async (req, res, next) => {
 
     if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "User already part of trip" })
-
     }
     else {
         try {
@@ -176,5 +175,13 @@ const unlinkTripAndUser = (req, res) => {
         })
 }
 
+const linkUserToCommunity = async (req, res, next) => {
+    try {
+        
+    } catch (error) {
+        next(error);
+    }
+}
 
-module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip };
+
+module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip, linkUserToCommunity };
