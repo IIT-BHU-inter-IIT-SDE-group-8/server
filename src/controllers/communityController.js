@@ -93,43 +93,35 @@ const deleteCommunity = async (req, res) => {
     );
 };
 
-const getAllTripsOfCommunity = async (req, res, next) => {
-    // Collect unique dates, origins, and destinations
-    const tripIds = new Set();
-    const community_id = req.params.community_id;
-    
-    try {
+const getAllTripsOfCommunity = async (req, res) => {
 
-        let sqlQuery = `
-        SELECT DISTINCT CT.trip_id
-        FROM community_trip CT
-        WHERE CT.community_id = ${community_id}
-        `;
+    client.query(`
+SELECT trips.*
+FROM trips
+INNER JOIN community_trips ON trips.trip_id = community_trips.trip_id
+WHERE community_trips.community_id = $1;
+`
+        , [req.params.community_id],
 
-        // Execute the SQL query
-        client.query(sqlQuery, (err, results) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'An error occurred while querying the database' });
-            }
-            else if (results.rows.length == 0) {
+        function(error, results) {
+            if (!error && results.rows.length != 0) {
+                res.status(201).send(results);
+            } else if (results.rows.length == 0) {
                 res.status(400).json({
                     code: 400,
                     message: "no trips present in the community",
                 });
+            } else {
+                console.log(error);
+                res.status(500).json({
+                    code: 500,
+                    message: "unknown error occurred",
+                });
+
             }
-
-            results.rows.forEach((row) => {
-                tripIds.add(row.trip_id);
-            });
-
-            queryTrips(req, res, tripIds);
-        });
-
-    } catch (error) {
-        next(error);
-    }
-};
+        }
+    )
+}
 
 const addTripToCommunity = async (req, res) => {
 
