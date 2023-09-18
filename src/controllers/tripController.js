@@ -118,9 +118,8 @@ const queryTrips = async (req, res, tripIds) => {
     const uniqueOrigins = new Set();
     const uniqueDestinations = new Set();
     const tripIdsArray = Array.from(tripIds);
-    console.log(tripIds);
     try {
-        client.query(`SELECT * FROM trips WHERE trip_id = $1`,[tripIdsArray], (err, results) => {
+        client.query(`SELECT * FROM trips WHERE trip_id = ANY($1)`,[tripIdsArray], (err, results) => {
 
             if (err) {
                 throw err;
