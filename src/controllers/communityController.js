@@ -185,7 +185,7 @@ const removeTripFromCommunity = async (req, res) => {
     );
 }
 
-
+// Utilities
 
 
 
