@@ -175,13 +175,4 @@ const unlinkTripAndUser = (req, res) => {
         })
 }
 
-const linkUserToCommunity = async (req, res, next) => {
-    try {
-        
-    } catch (error) {
-        next(error);
-    }
-}
-
-
 module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip, linkUserToCommunity };
