@@ -161,7 +161,7 @@ WHERE user_trip.user_id = $1;
 
 const unlinkTripAndUser = (req, res) => {
 
-    if (!tableContainsLink("user_trip", req.params.user_id, req.params.trip_id, user_trip_cache)) {
+    if (!tableContainsLink("user_trip", "user_id", "trip_id", req.params.user_id, req.params.trip_id, user_trip_cache)) {
         res.status(404).json({ code: 404, message: "trip not part of community" })
     }
 

@@ -21,7 +21,7 @@ const createTrip = async (req, res, next) => {
     }
 }
 
-const UpdateTrip = async (req, res, next) => {
+const updateTrip = async (req, res, next) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
     const trip_id = req.params.trip_id;
     try {
@@ -203,45 +203,4 @@ const getAllTripJoinRequests = async (req, res, next) => {
     }
 }
 
-const getAllTrips = async( req, res, next) => {
-    try {
-        client.query(`SELECT * from trips`, (err, results) => {
-            if (err) {
-                return next(err);
-            }
-            
-            // Send the results as a JSON response
-            res.status(200).json({ result: results.rows });
-        });
-    } catch (error) {
-        next(error);
-    }
-}
-
-const AllowOrDenyTripJoinRequest = async (req, res, next) => {
-    try {
-
-        const allow = req.body.allow;
-        const userId = req.body.user_id;
-        const tripId = req.params.trip_id;
-
-        if (allow == true)
-        {
-            client.query(
-                `INSERT INTO user_trip(user_id INT, trip_id, is_admin)
-                 VALUES($1, $2, $3)`,
-                 [userId, tripId, false]
-            );
-        }
-
-        client.query(`
-        DELETE FROM join_requests
-        WHERE user_id = $1;
-        `,[userId]);
-
-    } catch (error) {
-        next(error);
-    }
-}
-
-module.exports = { getTripById, createTrip,  UpdateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests, getAllTripsOfUserAndFriends, queryTrips, AllowOrDenyTripJoinRequest }
+module.exports = { getTripById, createTrip,  updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }
