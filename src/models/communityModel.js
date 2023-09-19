@@ -18,8 +18,6 @@ const createCommunitiesTable = () => {
             console.log('Communities table created successfully');
         }
     });
-
-
 }
 
 

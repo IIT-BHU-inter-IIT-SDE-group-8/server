@@ -12,7 +12,6 @@ const createTrip = async (req, res, next) => {
                 if (err) {
                     throw err;
                 }
-
             })
         const message = "Trip created successfully";
         res.status(200).json({ message });
@@ -22,19 +21,26 @@ const createTrip = async (req, res, next) => {
 }
 
 const UpdateTrip = async (req, res, next) => {
+    const auth_user_id = req.user.id;
+    const user_id = await db.oneOrNone('SELECT user_id FROM your_table_name WHERE trip_id = $1', tripID);
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
     const trip_id = req.params.trip_id;
     try {
-        client.query(`
+        if (user_id === auth_user_id) {
+            client.query(`
 
-        UPDATE trips SET trip_name = $2, trip_origin = $3, trip_destination = $4,trip_desc = $5, trip_departure_datetime = $6, trip_arrival_datetime = $7
-        WHERE trip_id = $1
-        `, [trip_id, name, origin, destination, desc, departure_dateTime, arrival_dateTime], (err, results) => {
-            if (err) {
-                throw err;
-            }
-        })
-        res.status(200).json({ message: "trip updated successfully!" });
+            UPDATE trips SET trip_name = $2, trip_origin = $3, trip_destination = $4,trip_desc = $5, trip_departure_datetime = $6, trip_arrival_datetime = $7
+            WHERE trip_id = $1
+            `, [trip_id, name, origin, destination, desc, departure_dateTime, arrival_dateTime], (err, results) => {
+                if (err) {
+                    throw err;
+                }
+            })
+            res.status(200).json({ message: "trip updated successfully!" });
+        } else {
+            res.status(401).json({ message: "Failed to update trip." });
+        }
+        
     } catch (error) {
         next(error);
     }
@@ -42,78 +48,89 @@ const UpdateTrip = async (req, res, next) => {
 
 const deleteTrip = async (req, res, next) => {
     const trip_id = req.params.trip_id;
+    const auth_user_id = req.user.id;
+    const user_id = await db.oneOrNone('SELECT user_id FROM your_table_name WHERE trip_id = $1', tripID);
     try {
-        client.query(`DELETE FROM trips
-        WHERE trip_id = $1`, [trip_id], (err, results) => {
-            if (err) {
-                throw err;
-            }
-        })
-        res.json({ message: "Trip deleted successfully." })
+        if (user_id === auth_user_id) {
+            client.query(`DELETE FROM trips
+            WHERE trip_id = $1`, [trip_id], (err, results) => {
+                if (err) {
+                    throw err;
+                }
+            })
+            res.status(200).json({ message: "Trip deleted successfully." })
+        } else {
+            res.status(401).json({ message: "Failed to delete the trip." })
+        }
     } catch (error) {
         next(error);
     }
 }
 
-const getAllTripsOfUserAndFriends = async (req, res, next) => {
+const getAllTripsOfUserFriendsAndCommunity = async (req, res, next) => {
 
     const user_id = req.param.user_id;
+    const auth_user_id = req.user.id;
 
     try {
 
-        client.query(`WITH UserFriends AS (
-            SELECT DISTINCT user2_id AS friend_id
-            FROM friendship
-            WHERE user1_id = $1
-            UNION
-            SELECT DISTINCT user1_id AS friend_id
-            FROM friendship
-            WHERE user2_id = $1
-        )
-
-        SELECT DISTINCT UT.trip_id
-        FROM user_trip UT
-        WHERE UT.user_id = $1
-            OR UT.user_id IN (
-                SELECT UC.user_id
-                FROM user_community UC
-                WHERE UC.community_id IN (
-                    SELECT UC2.community_id
-                    FROM user_community UC2
-                    WHERE UC2.user_id = $1
+        if (user_id === auth_user_id) {
+            client.query(`WITH UserFriends AS (
+                SELECT DISTINCT user2_id AS friend_id
+                FROM friendship
+                WHERE user1_id = $1
+                UNION
+                SELECT DISTINCT user1_id AS friend_id
+                FROM friendship
+                WHERE user2_id = $1
+            )
+    
+            SELECT DISTINCT UT.trip_id
+            FROM user_trip UT
+            WHERE UT.user_id = $1
+                OR UT.user_id IN (
+                    SELECT UC.user_id
+                    FROM user_community UC
+                    WHERE UC.community_id IN (
+                        SELECT UC2.community_id
+                        FROM user_community UC2
+                        WHERE UC2.user_id = $1
+                    )
                 )
-            )
-            OR UT.user_id IN (
-                SELECT friend_id
-                FROM UserFriends
-            )
-        UNION
-        SELECT DISTINCT CT.trip_id
-        FROM community_trip CT
-        WHERE CT.community_id IN (
-            SELECT UC.community_id
-            FROM user_community UC
-            WHERE UC.user_id = $1
-        );
-        `, [user_id], (err, results) => {
-            if (err) {
-                // Handle the error here
-                console.error(err);
-            } else {
-                const tripIds = new Set();
-                results.rows.map(ele => {
-                    tripIds.add(ele.trip_id);
-                });
-                queryTrips(req, res, tripIds);
-            }
-        })
+                OR UT.user_id IN (
+                    SELECT friend_id
+                    FROM UserFriends
+                )
+            UNION
+            SELECT DISTINCT CT.trip_id
+            FROM community_trip CT
+            WHERE CT.community_id IN (
+                SELECT UC.community_id
+                FROM user_community UC
+                WHERE UC.user_id = $1
+            );
+            `, [user_id], (err, results) => {
+                if (err) {
+                    // Handle the error here
+                    console.error(err);
+                } else {
+                    const tripIds = new Set();
+                    results.rows.map(ele => {
+                        tripIds.add(ele.trip_id);
+                    });
+                    queryTrips(req, res, tripIds);
+                }
+            })
+        } else {
+            res.status(401).json({message : "cannot get the trips!!"})
+        }
 
     } catch (error) {
         next(error);
     }
 }
 
-const getAllTrips = async (req, res, tripIds) => {
+const queryTrips = async (req, res, tripIds) => {
     const uniqueDates = new Set();
     const uniqueOrigins = new Set();
     const uniqueDestinations = new Set();
@@ -182,24 +199,77 @@ const getTripById = (req, res) => {
 const getAllTripJoinRequests = async (req, res, next) => {
     const trip_id = req.params.trip_id;
     const user_id = req.params.user_id;
+    const auth_user_id = req.user.id;
     try {
-        client.query(`
-        SELECT jr.user_id
-        FROM join_requests jr
-        JOIN user_trip ut ON jr.trip_id = ut.trip_id
-        WHERE jr.trip_id = $1
-              AND ut.user_id = $2
-              AND ut.is_admin = TRUE;
-
-        `, [trip_id, user_id], (err, results) => {
-            if (err) {
-                throw err;
-            }
-            res.status(200).json({ results: results.rows })
-        })
+        if (user_id === auth_user_id) {
+            client.query(`
+            SELECT jr.user_id
+            FROM join_requests jr
+            JOIN user_trip ut ON jr.trip_id = ut.trip_id
+            WHERE jr.trip_id = $1
+                  AND ut.user_id = $2
+                  AND ut.is_admin = TRUE;
+    
+            `, [trip_id, user_id], (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                res.status(200).json({ results: results.rows })
+            }) 
+        } else {
+            res.status(401).json({ results: "cannot get join requests" })
+        }
     } catch (error) {
         next(error);
     }
 }
 
-module.exports = { getTripById, createTrip,  UpdateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }
+const getAllTrips = async( req, res, next) => {
+    try {
+        client.query(`SELECT * from trips`, (err, results) => {
+            if (err) {
+                return next(err);
+            }
+            
+            // Send the results as a JSON response
+            res.status(200).json({ result: results.rows });
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const AllowOrDenyTripJoinRequest = async (req, res, next) => {
+    try {
+
+        const allow = req.body.allow;
+        const userId = req.body.user_id;
+        const auth_user_id = req.user.id;
+        const tripId = req.params.trip_id;
+
+        if(userId === auth_user_id)
+        {
+            if (allow == true)
+            {
+                client.query(
+                    `INSERT INTO user_trip(user_id INT, trip_id, is_admin)
+                    VALUES($1, $2, $3)`,
+                    [userId, tripId, false]
+                );
+            }
+
+            client.query(`
+            DELETE FROM join_requests
+            WHERE user_id = $1;
+            `,[userId]);
+            }
+        else
+        {
+           res.status(401).json({message: "cannot perform the query!!"}) 
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = { getTripById, createTrip,  UpdateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests, getAllTripsOfUserFriendsAndCommunity, queryTrips, AllowOrDenyTripJoinRequest }
