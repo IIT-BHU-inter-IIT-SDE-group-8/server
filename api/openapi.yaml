@@ -806,6 +806,10 @@ components:
           type: string
         community_desc:
           type: string
+        community_admin:
+          type: integer #the user_id of the user who called the create community endpoint
+
+
 
     CommunityCreate:
       type: object
@@ -814,8 +818,11 @@ components:
           type: string
         community_desc:
           type: string
+        community_admin:
+          type:  integer #the user_id of the user who called the create community endpoint
       required:
         - community_name
+
 
     CommunityUpdate:
       type: object
@@ -844,6 +851,8 @@ components:
           type: string
         trip_desc:
           type: string
+        trip_admin:
+          type: integer #the user_id of the user who called the create trip endpoint
 
     TripCreate:
       type: object
@@ -862,6 +871,8 @@ components:
           type: string
         trip_desc:
           type: string
+        trip_admin:
+          type: integer #the user_id of the user who called the create trip endpoint
       required:
         - trip_departure_datetime
         - trip_arrival_datetime
@@ -886,6 +897,56 @@ components:
           type: string
         trip_desc:
           type: string
+
+    CommunityRequestObject:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: ID of the user
+        community_id:
+          type: integer
+          description: ID of the community or trip.
+        admin_id:
+          type: integer
+          description: ID of the admin of the community
+        request_type:
+          type: string
+          enum: [request, invite]
+          description: Type of the action (request or invite).
+
+
+    communityRequestObjectCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: ID of the requester or invitee.
+        community_id:
+          type: integer
+          description: ID of the community or trip.
+        admin_id:
+          type: integer
+          description: ID of the admin of the community
+        request_type:
+          type: string
+          enum: [request, invite]
+          description: Type of the action (request or invite).
+      required:
+        - user_id
+        - community_id
+        - type
+
+    communityRequestObjectDelete:
+      type: object
+      properties:
+        request_id:
+          type: integer
+          description: ID of the request or invitation to be deleted.
+      required:
+        - request_id
+
+
 
     Train:
       type: object

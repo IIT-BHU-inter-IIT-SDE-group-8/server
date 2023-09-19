@@ -21,7 +21,7 @@ const createTrip = async (req, res, next) => {
     }
 }
 
-const UpdateTrip = async (req, res, next) => {
+const updateTrip = async (req, res, next) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
     const trip_id = req.params.trip_id;
     try {
@@ -202,4 +202,4 @@ const getAllTripJoinRequests = async (req, res, next) => {
     }
 }
 
-module.exports = { getTripById, createTrip,  UpdateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }
+module.exports = { getTripById, createTrip,  updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }

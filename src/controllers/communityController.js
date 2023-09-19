@@ -1,4 +1,5 @@
 const community_trips_cache = new Set();
+const community_users_cache = new Set()
 const community_cache = [];
 //TODO: create a community cache
 //TODO: return results using the utils defined by Varun
@@ -42,8 +43,6 @@ const createCommunity = async (req, res) => {
     )
 }
 const getCommunityById = async (req, res) => {
-
-
     client.query("SELECT *  FROM communities WHERE community_id = $1"
         , [req.params.community_id],
         function(error, results) {
@@ -125,10 +124,12 @@ WHERE community_trips.community_id = $1;
 
 const addTripToCommunity = async (req, res) => {
 
-    const entryIsInDB = await tableContainsLink("community_trips", req.params.community_id, req.params.trip_id, community_trips_cache)
+    const entryIsInDB = await tableContainsLink("community_trips", "community_id", "trip_id", req.params.community_id, req.params.trip_id, community_trips_cache)
+
+    res.json({ message: "received" })
+
     if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "trip already part of community" })
-
     }
     else {
         client.query(
@@ -180,11 +181,101 @@ const removeTripFromCommunity = async (req, res) => {
 
 }
 
+const getAllUsersOfCommunity = async (req, res) => {
+
+    client.query(`
+SELECT users.*
+FROM users
+INNER JOIN community_users ON users.user_id = community_users.user_id
+WHERE community_users.community_id = $1;
+`
+        , [req.params.community_id],
+
+        function(error, results) {
+            if (!error && results.rows.length != 0) {
+                res.status(201).send(results);
+            } else if (results.rows.length == 0) {
+                res.status(400).json({
+                    code: 400,
+                    message: "no users present in the community",
+                });
+            } else {
+                console.log(error);
+                res.status(500).json({
+                    code: 500,
+                    message: "unknown error occurred",
+                });
+
+            }
+        }
+    )
+}
+
+const addUserToCommunity = async (req, res) => {
+
+    const entryIsInDB = await tableContainsLink("community_users", "community_id", "user_id", req.params.community_id, req.params.user_id, community_users_cache)
+
+    res.json({ message: "received" })
+
+    if (entryIsInDB) {
+        res.status(400).json({ code: 400, message: "user already part of community" })
+    }
+    else {
+        client.query(
+            "INSERT INTO community_users (community_id, user_id) VALUES ($1,$2)", [req.params.community_id, req.params.user_id],
+            function(error, results) {
+                if (!error) {
+                    res.status(201).send(results);
+                } else {
+                    console.log(error);
+                    res.status(400).json({
+                        code: 400,
+                        message: "invalid input",
+                    });
+                }
+            }
+        )
 
 
-// Utilities
+    }
+}
+
+const removeUserFromCommunity = async (req, res) => {
+
+
+    if (!tableContainsLink("community_users", req.params.community_id, req.params.user_id, community_trips_cache)) {
+        res.status(404).json({ code: 404, message: "user not part of community" })
+    }
+
+    client.query(
+        "DELETE FROM community_users WHERE community_id = $1 AND user_id = $2",
+        [req.params.community_id, req.params.user_id],
+        function(error, results) {
+            if (!error) {
+                removeElementFromSet(community_users_cache, String(req.params.community_id) + "-" + String(req.params.user_id))
+                res.status(204).json({
+                    code: 204,
+                    message: "user removed from the community successfully"
+                });
+            } else {
+                console.log(error)
+                res.status(500).json({
+                    code: 500,
+                    message: "unexpected error",
+                });
+            }
+        }
+    );
+
+
+}
 
 
 
 
-module.exports = { createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }
+
+
+
+
+
+module.exports = { addUserToCommunity, removeUserFromCommunity, getAllUsersOfCommunity,  createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }
