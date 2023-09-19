@@ -1,4 +1,4 @@
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 
 //create trips table
 const createTrip = async () => {
@@ -21,12 +21,15 @@ const createTrip = async () => {
 }
 
 //create table which links trip to community
-const trip_link_to_community = async () => {
+const createCommunityTripTable = async () => {
     try {
         const query = `
     CREATE TABLE IF NOT EXISTS community_trip (
       community_trip_id SERIAL PRIMARY KEY,
       community_id INT,
+      trip_id INT,
+      FOREIGN KEY (community_id) REFERENCES communities(community_id),
+      FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
       trip_id INT,
       FOREIGN KEY (community_id) REFERENCES communities(community_id),
       FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
@@ -39,7 +42,7 @@ const trip_link_to_community = async () => {
 }
 
 //create table which user with community
-const link_user_to_community = async () => {
+const createUserCommunityTable = async () => {
     try {
         const query = `
     CREATE TABLE IF NOT EXISTS user_community (
@@ -57,7 +60,7 @@ const link_user_to_community = async () => {
 }
 
 //create table which link user with trip
-const link_user_to_trip = async () => {
+const createUserTripTable = async () => {
     try {
         const query = `
     CREATE TABLE IF NOT EXISTS user_trip (
@@ -76,7 +79,7 @@ const link_user_to_trip = async () => {
 }
 
 //trip join request table
-const join_request = async () => {
+const createTripJoinRequestTable = async () => {
     try {
         const query = `
     CREATE TABLE IF NOT EXISTS join_requests (

@@ -95,7 +95,6 @@ const link_user_to_trip = async (req, res, next) => {
 
     if (entryIsInDB) {
         res.status(400).json({ code: 400, message: "User already part of trip" })
-
     }
     else {
         try {

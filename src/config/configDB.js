@@ -14,4 +14,4 @@ client.connect().then(() => {
     console.log("Connected to Database")
 })
 
-module.exports = client
+module.exports = {client}
