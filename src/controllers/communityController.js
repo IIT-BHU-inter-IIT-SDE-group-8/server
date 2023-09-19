@@ -274,4 +274,4 @@ const removeUserFromCommunity = async (req, res) => {
 
 
 
-module.exports = { community_users_cache, addUserToCommunity, removeUserFromCommunity, getAllUsersOfCommunity, createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }
+module.exports = { addUserToCommunity, removeUserFromCommunity, getAllUsersOfCommunity,  createCommunity, getAllCommunities, getCommunityById, deleteCommunity, updateCommunity, getAllTripsOfCommunity, removeTripFromCommunity, addTripToCommunity }

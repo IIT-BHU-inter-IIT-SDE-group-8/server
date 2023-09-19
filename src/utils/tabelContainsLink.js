@@ -1,4 +1,5 @@
 const client = require("../config/configDB")
+
 const tableContainsLink = async (tableName, column1, column2, id1, id2, cacheName) => {
     let contains = false;
     const isInCache = cacheName.has(String(id1) + '-' + String(id2));
