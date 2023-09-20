@@ -914,6 +914,10 @@ components:
           type: string
           enum: [request, invite]
           description: Type of the action (request or invite).
+        request_status:
+          type: string
+          enum: [accepted, rejected, pending]
+          description: Status of the request
 
 
     communityRequestObjectCreate:
@@ -928,10 +932,15 @@ components:
         admin_id:
           type: integer
           description: ID of the admin of the community
+
         request_type:
           type: string
           enum: [request, invite]
           description: Type of the action (request or invite).
+        request_status:
+          type: string
+          enum: [accepted, rejected, pending]
+          description: Status of the request
       required:
         - user_id
         - community_id
