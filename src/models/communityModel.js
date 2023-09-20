@@ -10,6 +10,8 @@ const createCommunitiesTable = () => {
                 community_id SERIAL PRIMARY KEY,
                 community_name VARCHAR(255) NOT NULL,
                 community_desc VARCHAR(255)
+                community_admin_id INT NOT NULL,
+                FOREIGN KEY (community_admin_id) REFERENCES users(user_id)
             );
             `, (err, res) => {
         if (err) {
