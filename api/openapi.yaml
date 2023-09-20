@@ -806,7 +806,7 @@ components:
           type: string
         community_desc:
           type: string
-        community_admin:
+        community_admin_id:
           type: integer #the user_id of the user who called the create community endpoint
 
 
@@ -818,7 +818,7 @@ components:
           type: string
         community_desc:
           type: string
-        community_admin:
+        community_admin_id:
           type:  integer #the user_id of the user who called the create community endpoint
       required:
         - community_name
@@ -851,7 +851,7 @@ components:
           type: string
         trip_desc:
           type: string
-        trip_admin:
+        trip_admin_id:
           type: integer #the user_id of the user who called the create trip endpoint
 
     TripCreate:
@@ -871,7 +871,7 @@ components:
           type: string
         trip_desc:
           type: string
-        trip_admin:
+        trip_admin_id:
           type: integer #the user_id of the user who called the create trip endpoint
       required:
         - trip_departure_datetime
