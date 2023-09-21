@@ -303,7 +303,7 @@ const AllowOrDenyTripJoinRequest = async (req, res, next) => {
         const tripId = parseInt(req.params.trip_id, 10);
         const AdminId = findAdmin(tripAdminQuery, tripId)
 
-        if (userId === auth_user_id && AdminId === auth_user_id) {
+        if (AdminId === auth_user_id) {
             if (allow == true) {
                 client.query(
                     `INSERT INTO user_trip(user_id INT, trip_id, is_admin)

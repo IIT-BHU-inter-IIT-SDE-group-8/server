@@ -85,11 +85,10 @@ const deleteUser = async (req, res, next) => {
     }
 }
 
-//TODO: alter this function according to the new spec, which includes admin_id the id of the user who created the trip
-const link_user_to_trip = async (req, res, next) => {
+const makeTripJoinRequest = async (req, res, next) => {
 
     const user_id = parseInt(req.params.user_id, 10);
-    const trip_id = parseInt(req.params.trip_id, 10);
+    const trip_id = parseInt(req.body.trip_id, 10);
     const auth_user_id = req.user.id;
     const entryIsInDB = await tableContainsLink("user_trip", user_id, trip_id, user_trip_cache)
 
@@ -170,4 +169,4 @@ const unlinkTripAndUser = (req, res) => {
     }
 }
 
-module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip};
+module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, makeTripJoinRequest};
