@@ -7,7 +7,7 @@ const { getAllTrips, getAllTripJoinRequests, AllowOrDenyTripJoinRequest, createT
 router.use(cors());
 
 router.route("/").get(checkAuthenticated,getAllTrips).post(checkAuthenticated,createTrip);
-router.route("/:trip_id").get(getTripById).put(checkAuthenticated,UpdateTrip).delete(checkAuthenticated,deleteTrip);
+router.route("/:trip_id").get(checkAuthenticated,getTripById).put(checkAuthenticated,UpdateTrip).delete(checkAuthenticated,deleteTrip);
 router.route("/:trip_id/join_requests").get(checkAuthenticated,getAllTripJoinRequests).post(checkAuthenticated,AllowOrDenyTripJoinRequest);
 
 //TODO: Add middlware later

@@ -88,9 +88,9 @@ const deleteUser = async (req, res, next) => {
 //TODO: alter this function according to the new spec, which includes admin_id the id of the user who created the trip
 const link_user_to_trip = async (req, res, next) => {
 
-    const user_id = req.params.user_id;
-    const trip_id = req.params.trip_id;
-    const auth_user_id = req.params.id;
+    const user_id = parseInt(req.params.user_id, 10);
+    const trip_id = parseInt(req.params.trip_id, 10);
+    const auth_user_id = req.user.id;
     const entryIsInDB = await tableContainsLink("user_trip", user_id, trip_id, user_trip_cache)
 
     if (entryIsInDB) {
@@ -99,61 +99,9 @@ const link_user_to_trip = async (req, res, next) => {
     else {
         try {
             if (auth_user_id === user_id) {
-                const findAdminQuery = `
-                SELECT user_id
-                FROM user_trip
-                WHERE trip_id = $1 AND is_admin = TRUE;
-                `;
-    
-                // Check if the admin and the user are friends
-                const checkFriendshipQuery = `
-                SELECT 1
-                FROM friendship
-                WHERE (user1_id = $1 AND user2_id = $2)
-                OR (user1_id = $2 AND user2_id = $1)
-                LIMIT 1;
-                `;
-    
-    
-                client.query(findAdminQuery, [trip_id])
-                    .then(adminResult => {
-                        if (adminResult.rows.length === 0) {
-                            console.log("Admin not found for the trip.");
-                            return;
-                        }
-    
-                        const adminUser_id = adminResult.rows[0].user_id;
-    
-                        // Check if the admin and the user are friends
-                        return client.query(checkFriendshipQuery, [adminUser_id, user_id]);
-                    })
-                    .then(friendshipResult => {
-                        if (friendshipResult && friendshipResult.rows.length > 0) {
-                            console.log("The user and the admin are friends.");
-    
-                            // If they are friends, add the user to the trip with is_admin as false
-                            const addUserToTripQuery = `
-                            INSERT INTO user_trip (user_id, trip_id, is_admin) VALUES ($1, $2, FALSE);
-                            `;
-    
-                            return client.query(addUserToTripQuery, [user_id, trip_id]);
-                        } else {
-                            console.log("The user and the admin are not friends.");
-    
-                            // If they are not friends, store the join request
-                            const storeJoinRequestQuery = `
-                            INSERT INTO join_requests (user_id, trip_id) VALUES ($1, $2);
-                            `;
-    
-                            return client.query(storeJoinRequestQuery, [user_id, trip_id]);
-                        }
-                    })
-                    .then(() => {
-                        console.log("Query executed successfully!");
-                    })
-                    .catch(error => {
-                        console.error("Error executing query:", error);
-                    });
+
+                client.query(`INSERT INTO trip_join_requests (user_id, trip_id) VALUES ($1, $2)`,[user_id, trip_id]);
+
             } else {
                 res.status(401).json({ message: "Cannot link user" });
             }
@@ -189,7 +137,6 @@ const getAllTripsOfUser = (req, res) => {
     {
         res.status(401).json({ message: "Cannot get trips user" });
     }
-    
 }
 
 const unlinkTripAndUser = (req, res) => {
@@ -221,7 +168,6 @@ const unlinkTripAndUser = (req, res) => {
     {
         res.status(401).json({ message: "Cannot unlink user" });
     }
-    
 }
 
 module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip};

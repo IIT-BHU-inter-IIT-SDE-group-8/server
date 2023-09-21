@@ -39,4 +39,37 @@ const createCommunitiesTripsTable = () => {
     });
 }
 
-module.exports = { createCommunitiesTripsTable, createCommunitiesTable }
+//create table which user with community
+const createUserCommunityTable = async () => {
+    try {
+        const query = `
+    CREATE TABLE IF NOT EXISTS user_community (
+      user_community_id SERIAL PRIMARY KEY,
+      user_id INT,
+      community_id INT,
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
+      FOREIGN KEY (community_id) REFERENCES communities(community_id)
+  );
+  `;
+        await client.query(query);
+    } catch (error) {
+        console.error('Error creating table:', error);
+    }
+}
+
+// create community trip table
+const createCommunityAdminTable = async (req, res, next) => {
+    try {
+        client.query(`CREATE TABLE IF NOT EXISTS community_admin (
+            community_admin_id SERIAL PRIMARY KEY,
+            user_id INT,
+            community_id INT,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (community_id) REFERENCES communities (community_id)
+        );`)
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityAdminTable, createUserCommunityTable }

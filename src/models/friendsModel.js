@@ -7,9 +7,9 @@ const createFriendsTable = async () => {
       CREATE TABLE IF NOT EXISTS friendship (
         friendship_id SERIAL PRIMARY KEY,
         user1_id INT,
-        user2_id INT
-        FOREIGN KEY user1_id REFERENCES users(user_id),
-        FOREIGN KEY user2_id REFERENCES users(user_id)
+        user2_id INT,
+        FOREIGN KEY (user1_id) REFERENCES users(user_id),
+        FOREIGN KEY (user2_id) REFERENCES users(user_id)
     );
     `;
         await client.query(query);
@@ -19,4 +19,19 @@ const createFriendsTable = async () => {
     }
 }
 
-module.exports = { createFriendsTable }
+//create friend request table
+const createFriendRequestTable = async () => {
+    try {
+        client.query(`CREATE TABLE IF NOT EXISTS friend_request (
+            friend_request_id SERIAL PRIMARY KEY,
+            user1_id INT,
+            user2_id INT,
+            FOREIGN KEY (user1_id) REFERENCES users(user_id),
+            FOREIGN KEY (user2_id) REFERENCES users(user_id)
+        );`)
+    } catch (error) {
+        console.log("error creating table:",error);
+    }
+}
+
+module.exports = { createFriendsTable, createFriendRequestTable }
