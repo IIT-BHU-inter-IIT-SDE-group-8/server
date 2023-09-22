@@ -209,7 +209,7 @@ const getAllTrips = async( req, res, next) => {
             if (err) {
                 return next(err);
             }
-            
+
             // Send the results as a JSON response
             res.status(200).json({ result: results.rows });
         });
@@ -220,7 +220,7 @@ const getAllTrips = async( req, res, next) => {
 
 const AllowOrDenyTripJoinRequest = async (req, res, next) => {
     try {
-        
+
         const allow = req.body.allow;
         const userId = req.body.user_id;
         const tripId = req.params.trip_id;
@@ -244,4 +244,4 @@ const AllowOrDenyTripJoinRequest = async (req, res, next) => {
     }
 }
 
-module.exports = { getTripById, createTrip,  UpdateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests, getAllTripsOfUserAndFriends, queryTrips, AllowOrDenyTripJoinRequest }
+module.exports = { getTripById, createTrip,  updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests, getAllTripsOfUserAndFriends, queryTrips, AllowOrDenyTripJoinRequest }
