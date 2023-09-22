@@ -2,11 +2,12 @@ const express = require("express")
 const { addTripToCommunity, createCommunity, deleteCommunity, getAllCommunities, getAllTripsOfCommunity, getCommunityById, removeTripFromCommunity, updateCommunity, getAllUsersOfCommunity, addUserToCommunity, removeUserFromCommunity } = require("../controllers/communityController");
 const { getTripById } = require("../controllers/tripController");
 const { getUserById } = require("../controllers/userControllers.js");
+const { checkAuthenticated } = require("../middleware/checkAuthentication.js")
 
 const router = express.Router();
 
 
-router.route("/").get(getAllCommunities).post(createCommunity)
+router.route("/").get(getAllCommunities).post(checkAuthenticated, createCommunity)
 router.route("/:community_id").get(getCommunityById).put(updateCommunity).delete(deleteCommunity)
 
 router.route("/:community_id/trips").get(getAllTripsOfCommunity)

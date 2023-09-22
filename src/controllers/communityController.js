@@ -26,7 +26,7 @@ const createCommunity = async (req, res) => {
         [
             req.body.community_name,
             req.body.community_desc,
-//            req.user.id
+            req.user.id
         ],
         function(error, results) {
             if (!error) {

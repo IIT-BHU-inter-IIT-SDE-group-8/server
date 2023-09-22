@@ -40,7 +40,7 @@ const trip_link_to_community = async () => {
 const link_user_to_community = async () => {
     try {
         const query = `
-    CREATE TABLE IF NOT EXISTS user_community (
+    CREATE TABLE IF NOT EXISTS community_users (
       user_community_id SERIAL PRIMARY KEY,
       user_id INT,
       community_id INT
