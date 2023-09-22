@@ -1,5 +1,5 @@
 
-const {client} = require("../config/configDB");
+const { client } = require("../config/configDB");
 
 
 
@@ -24,7 +24,7 @@ const createCommunitiesTable = () => {
 
 }
 
-const createCommunityRequestTable = async () => {
+const createCommunityRequestsTable = async () => {
     createStatus()
     createTypes()
 
@@ -86,4 +86,4 @@ const createCommunitiesTripsTable = () => {
     });
 }
 
-module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityRequestTable }
+module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityRequestsTable }

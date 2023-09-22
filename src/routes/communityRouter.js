@@ -1,6 +1,6 @@
 const express = require("express")
 const { addTripToCommunity, createCommunity, deleteCommunity, getAllCommunities, getAllTripsOfCommunity, getCommunityById, removeTripFromCommunity, updateCommunity, getAllUsersOfCommunity, addUserToCommunity, removeUserFromCommunity } = require("../controllers/communityController");
-const { getTripById } = require("../controllers/tripController");
+const { updateTrip, getTripById } = require("../controllers/tripController");
 const { getUserById } = require("../controllers/userControllers.js");
 const { checkAuthenticated } = require("../middleware/checkAuthentication.js")
 
@@ -11,7 +11,7 @@ router.route("/").get(getAllCommunities).post(checkAuthenticated, createCommunit
 router.route("/:community_id").get(getCommunityById).put(updateCommunity).delete(deleteCommunity)
 
 router.route("/:community_id/trips").get(getAllTripsOfCommunity)
-router.route("/:community_id/trips/:trip_id").get(getTripById).post(addTripToCommunity).delete(removeTripFromCommunity).delete(deleteTrip).put(UpdateTrip);
+router.route("/:community_id/trips/:trip_id").get(getTripById).post(addTripToCommunity).delete(removeTripFromCommunity).put(updateTrip);
 
 router.route("/:community_id/users").get(getAllUsersOfCommunity)
 router.route("/:community_id/users/:user_id").get(getUserById).post(addUserToCommunity).delete(removeUserFromCommunity)

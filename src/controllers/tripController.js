@@ -119,7 +119,7 @@ const queryTrips = async (req, res, tripIds) => {
     const uniqueDestinations = new Set();
     const tripIdsArray = Array.from(tripIds);
     try {
-        client.query(`SELECT * FROM trips WHERE trip_id = ANY($1)`,[tripIdsArray], (err, results) => {
+        client.query(`SELECT * FROM trips WHERE trip_id = ANY($1)`, [tripIdsArray], (err, results) => {
 
             if (err) {
                 throw err;
@@ -165,19 +165,19 @@ const queryTrips = async (req, res, tripIds) => {
 const getTripById = (req, res) => {
 
     client.query("SELECT * FROM trips WHERE trip_id = $1", [req.params.trip_id],
-    (error, result) => {
+        (error, result) => {
 
-        if (!error) {
-            res.status(200).json(result)
-        }
-        else {
-            res.status(500).json({
-                status: 500,
-                message: "Unknown internal error occurred while getting trip by id"
-            })
-        }
+            if (!error) {
+                res.status(200).json(result)
+            }
+            else {
+                res.status(500).json({
+                    status: 500,
+                    message: "Unknown internal error occurred while getting trip by id"
+                })
+            }
 
-    })
+        })
 }
 
 const getAllTripJoinRequests = async (req, res, next) => {
@@ -203,4 +203,4 @@ const getAllTripJoinRequests = async (req, res, next) => {
     }
 }
 
-module.exports = { getTripById, createTrip,  updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }
+module.exports = { getTripById, createTrip, queryTrips, getAllTripsOfUserAndFriends, updateTrip, deleteTrip, getAllTripJoinRequests }
