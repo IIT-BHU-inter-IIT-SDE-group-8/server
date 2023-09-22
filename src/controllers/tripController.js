@@ -234,7 +234,7 @@ const getTripById = async (req, res, next) => {
                     (error, result) => {
 
                         if (!error) {
-                            res.status(200).json(result);
+                            res.status(200).json(result.rows);
                         }
                         else {
                             res.status(500).json({
