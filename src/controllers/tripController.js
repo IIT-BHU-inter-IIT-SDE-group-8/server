@@ -69,7 +69,7 @@ const UpdateTrip = async (req, res, next) => {
 }
 
 const deleteTrip = async (req, res, next) => {
-    const trip_id = req.params.trip_id;
+    const trip_id = parseInt(req.params.trip_id, 10);
     const auth_user_id = req.user.id;
 
     try {
@@ -151,7 +151,7 @@ function fetchGroupIds(user_id, Query, group_Ids) {
 
 const getAllTripsOfUserFriendsAndCommunity = async (req, res, next) => {
 
-    const user_id = req.params.user_id;
+    const user_id = parseInt(req.params.user_id, 10);
     const auth_user_id = req.user.id;
 
     try {
@@ -298,12 +298,13 @@ const AllowOrDenyTripJoinRequest = async (req, res, next) => {
     try {
 
         const allow = req.body.allow;
-        const userId = req.body.user_id;
+        const userId = parseInt(req.body.user_id, 10);
         const auth_user_id = req.user.id;
+        const admin_idFrom_Url = parseInt(req.params.user_id);
         const tripId = parseInt(req.params.trip_id, 10);
         const AdminId = findAdmin(tripAdminQuery, tripId)
 
-        if (AdminId === auth_user_id) {
+        if (AdminId === auth_user_id && admin_idFrom_Url === auth_user_id) {
             if (allow == true) {
                 client.query(
                     `INSERT INTO user_trip(user_id INT, trip_id, is_admin)

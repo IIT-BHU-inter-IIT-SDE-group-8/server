@@ -51,7 +51,6 @@ const createUserTripTable = async () => {
       user_trip_id SERIAL PRIMARY KEY,
       user_id INT,
       trip_id INT,
-      is_admin BOOLEAN,
       FOREIGN KEY (trip_id) REFERENCES trips(trip_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id)
   );

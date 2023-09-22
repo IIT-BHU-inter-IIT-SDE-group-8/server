@@ -2,7 +2,9 @@ const { client } = require('../config/configDB')
 const bcrypt = require("bcrypt");
 const user_trip_cache = new Set()
 const tableContainsLink = require("../utils/tabelContainsLink")
-const { removeElementFromSet } = require("../utils/cache")
+const { removeElementFromSet } = require("../utils/cache");
+const { findAdmin, tripAdminQuery } = require('./tripController');
+
 
 const getAllUsers = async (res, req, next) => {
     try {
@@ -16,10 +18,11 @@ const getAllUsers = async (res, req, next) => {
 const getUserById = (res, req) => {
 
     const auth_user_id = req.user.id;
+    const user_id = parseInt(req.params.user_id, 10);
 
-    if(auth_user_id === req.params.user_id)
+    if(auth_user_id === user_id)
     {
-        client.query("SELECT * FROM users WHERE user_id = $1", [req.params.user_id]
+        client.query("SELECT * FROM users WHERE user_id = $1", [user_id]
             , (error, result) => {
 
             if (!error) {
@@ -38,7 +41,7 @@ const getUserById = (res, req) => {
 }
 
 const updateUser = async (req, res, next) => {
-    const user_id = req.params.user_id;
+    const user_id = parseInt(req.params.user_id, 10);
     const auth_user_id = req.user.id;
     const { name, email, password, bio, phone } = req.body;
     const salt = await bcrypt.genSalt(10);
@@ -64,7 +67,7 @@ const updateUser = async (req, res, next) => {
 }
 
 const deleteUser = async (req, res, next) => {
-    const user_id = req.params.user_id;
+    const user_id = parseInt(req.params.user_id, 10);
     const auth_user_id = req.user.id;
     try {
         if (user_id === auth_user_id) {
@@ -113,7 +116,7 @@ const makeTripJoinRequest = async (req, res, next) => {
 
 const getAllTripsOfUser = (req, res) => {
 
-    const user_id = req.params.user_id;
+    const user_id = parseInt(req.params.user_id, 10);
     const auth_user_id = req.params.id;
 
     if(auth_user_id === user_id)
@@ -140,10 +143,12 @@ const getAllTripsOfUser = (req, res) => {
 
 const unlinkTripAndUser = (req, res) => {
 
-    const user_id = req.params.user_id;
+    const user_id = parseInt(req.params.user_id, 10);
     const auth_user_id = req.user.id;
+    const trip_id = parseInt(req.params.trip_id, 10);
+    const AdminId = findAdmin(tripAdminQuery, trip_id)
 
-    if(user_id === auth_user_id)
+    if(user_id === auth_user_id && AdminId === user_id)
     {
         if (!tableContainsLink("user_trip",user_id , req.params.trip_id, user_trip_cache)) {
             res.status(404).json({ code: 404, message: "trip not part of community" })
