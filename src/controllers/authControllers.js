@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-const {client} = require('../config/configDB.js');
+const client = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
 const sendTrue = require('../utils/sendTrue.js');
 const { ErrorHandler } = require("../middleware/error.js");
@@ -65,17 +65,18 @@ const register = async (req, res, next) => {
             values: [name, email, secPass, bio, phone]
         };
 
-        await client.query(insertUserQuery,(err, results)=>{
-            const user_id =  results.rows[0].user_id;
-            
+        await client.query(insertUserQuery, (err, results) => {
+            const user_id = results.rows[0].user_id;
+
             const authToken = jwt.sign({ user: { user_id } }, JWT_SECRET);
-            
+
             // Store the authToken in a cookie
             res.cookie('authToken', authToken, { httpOnly: true });
-            
+
             return sendTrue(res, 201, "You are now registered. Please log in");
         });
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };
@@ -86,7 +87,7 @@ const logout = (req, res) => {
     res.redirect('/users/login');
     return res.status(200).json({ message: "You have been logged out" });
 };
-  
+
 
 
 
