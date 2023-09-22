@@ -1,12 +1,13 @@
 const express = require("express");
 const { getAllCommunityRequestObjects, createCommunityRequestObject, getCommunityRequestObjectByRequestId, updateCommunityRequestObject, deleteCommunityRequestObjectById, updateCommunityRequestStatus } = require("../controllers/communityRequestController");
 const router = express.Router();
+const { checkAuthenticated } = require("../middleware/checkAuthentication.js")
 
-
-router.route("/").get(getAllCommunityRequestObjects).post(createCommunityRequestObject)
+router.route("/").get(getAllCommunityRequestObjects).post(checkAuthenticated, createCommunityRequestObject)
 router.route("/:community_request_id").get(getCommunityRequestObjectByRequestId).delete(deleteCommunityRequestObjectById)
-    .put((req, res) => {
-        if (!req.headers.request_status) {
+    .put(checkAuthenticated, (req, res) => {
+        console.log("request received")
+        if (!req.headers.set_request_status) {
             updateCommunityRequestObject(req, res)
         }
         else {
