@@ -26,7 +26,12 @@ function getCommunityRequestObjectByRequestId() {
     client.query("SELECT * FROM community_requests WHERE request_id = $1", [req.params.request_id],
         (err, results) => {
             if (!err) {
-                res.status(200).json(results)
+                if (results.rows.length != 0) {
+                    res.status(200).json(results)
+                }
+                else {
+                    res.status(400).json({ status: 400, message: "Invalid input: No request with the given request Id found" })
+                }
             }
             else {
                 res.status(500).json({ status: 500, message: "unknown error while fetching community request by id" })
@@ -41,7 +46,13 @@ function getAllInviteObjectsByUserId() {
         [req.params.user_id, "invite"],
         (err, results) => {
             if (!err) {
-                res.status(200).json(results)
+
+                if (results.rows.length != 0) {
+                    res.status(200).json(results)
+                }
+                else {
+                    res.status(400).json({ status: 400, message: "Invalid input: No requests with the given parameters found" })
+                }
             }
             else {
                 res.status(500).json({ status: 500, message: "unknown error occurred while fetching invites by id" })
@@ -58,7 +69,12 @@ function getAllRequestObjectsByAdminId() {
         [req.params.user_id, "request"],
         (err, results) => {
             if (!err) {
-                res.status(200).json(results)
+                if (results.rows.length != 0) {
+                    res.status(200).json(results)
+                }
+                else {
+                    res.status(400).json({ status: 400, message: "Invalid input: No requests with the given parameters found" })
+                }
             }
             else {
                 res.status(500).json({ status: 500, message: "unknown error occurred while requests invites by id" })
@@ -109,96 +125,104 @@ async function deleteCommunityRequestObjectById() {
 
     if (requestExists) {
 
-        // pseudo code: if(req.user.id != req.body.user_id || req.user.id != admin_id)
+        if (req.user.id == req.body.user_id || req.user.id == admin_id) {
 
-        client.query("DELETE FROM community_requests WHERE request_id = $1 RETURNING *", [req.params.community_request_id],
+            client.query("DELETE FROM community_requests WHERE request_id = $1 RETURNING *", [req.params.community_request_id],
 
-            (err, results) => {
-                if (!err) {
-                    res.status(204).json({
-                        status: 204, message: "request object deleted successfully"
-                    })
-                    removeElementFromSet(community_requests_cache, String(results.rows[0].user_id) + "-" + String(results.rows[0].community_id))
+                (err, results) => {
+                    if (!err) {
+                        res.status(204).json({
+                            status: 204, message: "request object deleted successfully"
+                        })
+                        removeElementFromSet(community_requests_cache, String(results.rows[0].user_id) + "-" + String(results.rows[0].community_id))
+                    }
+                    else {
+                        res.status(500).json({
+                            status: 500, message: "unknown error occurred while deleting request object"
+                        })
+                    }
                 }
-                else {
-                    res.status(500).json({
-                        status: 500, message: "unknown error occurred while deleting request object"
-                    })
-                }
-            }
-        )
+            )
 
-    }
-
-}
-const updateCommunityRequestObject = async (req, res) => {
-    client.query(
-        "UPDATE community_request SET user_id = $1, community_id = $2 , admin_id =$3, request_type = $4, request_status = $5 WHERE request_id = $5",
-        [
-            req.body.user_id,
-            req.body.community_id,
-            req.body.admin_id,
-            req.body.request_type,
-            req.params.community_request_id
-
-        ],
-        function(error, results) {
-            if (!error) {
-                res.status(204).send(results);
-            }
-            else {
-                res.status(400).json({ code: 400, message: "invalid input", })
-            }
         }
-    );
-};
+        else {
+            res.status(400)
+                .json({ status: 400, message: "Invalid request: Only the user or the admin related to the request can perform this action" })
+        }
 
-const updateCommunityRequestStatus = async (req, res) => {
-
-    const requestStatus = req.headers.request_status;
-    const requestId = req.params.community_request_id;
-    const { community_id, user_id, request_type, admin_id } = req.body;
-
-    let isValidRequest
-    //only admin can accept a request and only the user can accept the invite
-    if ((request_type == "request" && req.user.id == admin_id) || (request_type == "invite" && req.user.id == user_id)) {
-        isValidRequest = true
     }
     else {
-        isValidRequest = false
+        res.status(400).json({ status: 400, message: "Invalid request: No such community request object" })
     }
 
-    try {
+    const updateCommunityRequestObject = async (req, res) => {
+        client.query(
+            "UPDATE community_request SET user_id = $1, community_id = $2 , admin_id =$3, request_type = $4, request_status = $5 WHERE request_id = $5",
+            [
+                req.body.user_id,
+                req.body.community_id,
+                req.body.admin_id,
+                req.body.request_type,
+                req.params.community_request_id
 
-        if (requestStatus !== "accepted" && requestStatus !== "rejected" && requestStatus !== "pending") {
-            return res.status(400).json({ status: 400, message: `Invalid request_status: ${requestStatus}, should either be "accepted", "rejected" or "pending"` });
+            ],
+            function(error, results) {
+                if (!error) {
+                    res.status(204).send(results);
+                }
+                else {
+                    res.status(400).json({ code: 400, message: "invalid input", })
+                }
+            }
+        );
+    };
+
+    const updateCommunityRequestStatus = async (req, res) => {
+
+        const requestStatus = req.headers.request_status;
+        const requestId = req.params.community_request_id;
+        const { community_id, user_id, request_type, admin_id } = req.body;
+
+        let isValidRequest
+        //only admin can accept a request and only the user can accept the invite
+        if ((request_type == "request" && req.user.id == admin_id) || (request_type == "invite" && req.user.id == user_id)) {
+            isValidRequest = true
+        }
+        else {
+            isValidRequest = false
         }
 
-        const updateResult = await client.query(
-            "UPDATE community_request SET request_status = $1 WHERE request_id = $2",
-            [requestStatus, requestId]
-        );
+        try {
 
-        if (requestStatus === "accepted") {
-            await client.query(
-                "INSERT INTO community_users (community_id, user_id) VALUES ($1, $2)",
-                [community_id, user_id]
+            if (requestStatus !== "accepted" && requestStatus !== "rejected" && requestStatus !== "pending") {
+                return res.status(400).json({ status: 400, message: `Invalid request_status: ${requestStatus}, should either be "accepted", "rejected" or "pending"` });
+            }
+
+            const updateResult = await client.query(
+                "UPDATE community_request SET request_status = $1 WHERE request_id = $2",
+                [requestStatus, requestId]
             );
 
-            res.status(204).json({ status: 204, message: `User successfully added to the community of community_id: ${community_id}` });
-        } else if (requestStatus === "rejected") {
-            res.status(204).json({ status: 204, message: `User request to join community of community_id: ${community_id} has been rejected` });
-        } else {
-            res.status(400).json({ status: 400, message: `Invalid request_status: ${requestStatus}, should either be "accepted", "rejected" or "pending"` });
+            if (requestStatus === "accepted") {
+                await client.query(
+                    "INSERT INTO community_users (community_id, user_id) VALUES ($1, $2)",
+                    [community_id, user_id]
+                );
+
+                res.status(204).json({ status: 204, message: `User successfully added to the community of community_id: ${community_id}` });
+            } else if (requestStatus === "rejected") {
+                res.status(204).json({ status: 204, message: `User request to join community of community_id: ${community_id} has been rejected` });
+            } else {
+                res.status(400).json({ status: 400, message: `Invalid request_status: ${requestStatus}, should either be "accepted", "rejected" or "pending"` });
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ status: 500, message: "Unknown error occurred while processing request" });
         }
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ status: 500, message: "Unknown error occurred while processing request" });
+    };
+
+    module.exports = {
+        getAllCommunityRequestObjects, getCommunityRequestObjectByRequestId, createCommunityRequestObject, deleteCommunityRequestObjectById, updateCommunityRequestObject,
+        getAllInviteObjectsByUserId, getAllRequestObjectsByAdminId, updateCommunityRequestStatus
     }
-};
-
-module.exports = {
-    getAllCommunityRequestObjects, getCommunityRequestObjectByRequestId, createCommunityRequestObject, deleteCommunityRequestObjectById, updateCommunityRequestObject,
-    getAllInviteObjectsByUserId, getAllRequestObjectsByAdminId, updateCommunityRequestStatus
 }
-
