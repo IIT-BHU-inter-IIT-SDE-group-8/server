@@ -119,7 +119,7 @@ const queryTrips = async (req, res, tripIds) => {
     const uniqueDestinations = new Set();
     const tripIdsArray = Array.from(tripIds);
     try {
-        client.query(`SELECT * FROM trips WHERE trip_id = ANY($1)`,[tripIdsArray], (err, results) => {
+        client.query(`SELECT * FROM trips WHERE trip_id = ANY($1)`, [tripIdsArray], (err, results) => {
 
             if (err) {
                 throw err;
@@ -165,19 +165,19 @@ const queryTrips = async (req, res, tripIds) => {
 const getTripById = (req, res) => {
 
     client.query("SELECT * FROM trips WHERE trip_id = $1", [req.params.trip_id],
-    (error, result) => {
+        (error, result) => {
 
-        if (!error) {
-            res.status(200).json(result)
-        }
-        else {
-            res.status(500).json({
-                status: 500,
-                message: "Unknown internal error occurred while getting trip by id"
-            })
-        }
+            if (!error) {
+                res.status(200).json(result)
+            }
+            else {
+                res.status(500).json({
+                    status: 500,
+                    message: "Unknown internal error occurred while getting trip by id"
+                })
+            }
 
-    })
+        })
 }
 
 const getAllTripJoinRequests = async (req, res, next) => {
@@ -203,4 +203,44 @@ const getAllTripJoinRequests = async (req, res, next) => {
     }
 }
 
-module.exports = { getTripById, createTrip,  updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests }
+const getAllTrips = async (req, res, next) => {
+    try {
+        client.query(`SELECT * from trips`, (err, results) => {
+            if (err) {
+                return next(err);
+            }
+
+            // Send the results as a JSON response
+            res.status(200).json({ result: results.rows });
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const AllowOrDenyTripJoinRequest = async (req, res, next) => {
+    try {
+
+        const allow = req.body.allow;
+        const userId = req.body.user_id;
+        const tripId = req.params.trip_id;
+
+        if (allow == true) {
+            client.query(
+                `INSERT INTO user_trip(user_id INT, trip_id, is_admin)
+                 VALUES($1, $2, $3)`,
+                [userId, tripId, false]
+            );
+        }
+
+        client.query(`
+        DELETE FROM join_requests
+        WHERE user_id = $1;
+        `, [userId]);
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = { getTripById, createTrip, updateTrip, deleteTrip, getAllTrips, getAllTripJoinRequests, getAllTripsOfUserAndFriends, queryTrips, AllowOrDenyTripJoinRequest }

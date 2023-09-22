@@ -11,11 +11,6 @@ const PORT = process.env.PORT || 4000;
 createUsersTable();
 createUsersTable();
 createTrip();
-trip_link_to_community();
-link_user_to_community();
-link_user_to_trip();
-link_user_to_user();
-join_request();
 createCommunityRequestTable();
 createCommunitiesTable()
 
