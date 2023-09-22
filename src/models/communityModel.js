@@ -9,9 +9,9 @@ const createCommunitiesTable = () => {
             CREATE TABLE IF NOT EXISTS communities (
                 community_id SERIAL PRIMARY KEY,
                 community_name VARCHAR(255) NOT NULL,
-                community_desc VARCHAR(255)
+                community_desc VARCHAR(255),
                 community_admin_id INT NOT NULL,
-                FOREIGN KEY (community_admin_id) REFERENCES users(user_id)
+                FOREIGN KEY(community_admin_id) REFERENCES users(user_id)
             );
             `, (err, res) => {
         if (err) {
@@ -24,7 +24,7 @@ const createCommunitiesTable = () => {
 
 }
 
-const createCommunityRequestsTable = async () => {
+const createCommunityRequestTable = async () => {
     createStatus()
     createTypes()
 
@@ -86,4 +86,4 @@ const createCommunitiesTripsTable = () => {
     });
 }
 
-module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityRequestsTable }
+module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityRequestTable }
