@@ -1,35 +1,30 @@
-const { client } = require('../config/configDB')
+const client = require('../config/configDB')
 const bcrypt = require("bcrypt");
 const user_trip_cache = new Set()
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 
-const getAllUsers = async (res, req, next) => {
+const getAllUsers = async (req, res, next) => {
+
     try {
         client.query(`SELECT * from users`, (err, results) => {
-            console.log(results.rows);
+            res.status(200).json(results)
         })
     } catch (error) {
         next(error);
     }
 }
-const getUserById = (res, req) => {
-
-    client.query("SELECT * FROM users WHERE user_id = $1", [req.params.user_id]
-        , (error, result) => {
-
-            if (!error) {
+const getUserById = (req, res) => {
+    client.query("SELECT * FROM users WHERE user_id = $1", [req.params.user_id],
+        (err, result) => {
+            if (!err) {
                 res.status(200).json(result)
 
             }
             else {
-                res.status(500).json({ status: 500, message: "Unknown error while getting user by Id" })
-
+                res.status(500).json({ status: 500, message: "unknown error while fetching user by Id" })
             }
-
-
         })
-
 }
 
 const updateUser = async (req, res, next) => {
@@ -161,7 +156,7 @@ WHERE user_trip.user_id = $1;
 
 const unlinkTripAndUser = (req, res) => {
 
-    if (!tableContainsLink("user_trip", req.params.user_id, req.params.trip_id, user_trip_cache)) {
+    if (!tableContainsLink("user_trip", "user_id", "trip_id", req.params.user_id, req.params.trip_id, user_trip_cache)) {
         res.status(404).json({ code: 404, message: "trip not part of community" })
     }
 
@@ -180,4 +175,4 @@ const unlinkTripAndUser = (req, res) => {
         })
 }
 
-module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip, linkUserToCommunity };
+module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, link_user_to_trip };

@@ -42,7 +42,7 @@ const createCommunityTripTable = async () => {
 const createUserCommunityTable = async () => {
     try {
         const query = `
-    CREATE TABLE IF NOT EXISTS user_community (
+    CREATE TABLE IF NOT EXISTS community_users (
       user_community_id SERIAL PRIMARY KEY,
       user_id INT,
       community_id INT,
