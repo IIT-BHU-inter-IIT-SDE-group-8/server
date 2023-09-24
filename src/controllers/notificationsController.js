@@ -1,56 +1,100 @@
 const client = require('../config/configDB')
 const subscription_cache = []
-//TODO: these are dummy success and error messages to be swapped with the error handler and send true functions
 
-
-export function saveSubscriptionObject(req, res) {
-
-    if (subscriptionExists(req.endpoint)) {
+export async function saveNotifObject(req, res) {
+    const { endpoint, expiration_time, keys } = req.body
+    const user_id = req.user.id
+    if (subscriptionExists(endpoint)) {
         res.status(409).JSON({
             status: 409,
             message: "subscription already exists"
         })
     }
     else {
-        client.query("INSERT INTO notifSubscriptions (endpoint, expiration_time, p256dh, auth) VALUES ($1, $2, $3, $4)",
-            [req.endpoint, req.expiration_time, req.keys.p256, req.keys.auth], (errors, result, fields) => {
+        try {
+            await client.query('BEGIN')
+            const notif = await client.query(`
+                INSERT INTO notifs (endpoint, expiration_time, p256dh, auth)
+                SELECT $1, $2, $3, $4
+                WHERE
+                NOT EXISTS (
+                    SELECT 1 FROM notifs WHERE endpoint = $1
+                )`,
+                [endpoint, expiration_time, keys.p256, keys.auth])
+            const notif_id = notif.rows[0].notif_id
+            await client.query("INSERT INTO user_notif (user_id, notif_id) VALUES ($1, $2)", [user_id, notif_id])
+            await client.query('COMMIT')
 
-                if (!errors) {
-                    return res.status(200)
-                }
-                else {
-                    res.status(500).JSON({
-                        status: 500,
-                        message: "Internal server error"
-                    })
-                }
-            })
+        } catch (error) {
+            await client.query('ROLLBACK')
+            console.log("Error occurred while creating subscription object and linking it to user: " + error)
+            res.status(500).json({ status: 500, message: "Error occurred while creating subscription object and linking it to user" })
+        }
     }
 }
+const getAllNotifs = async (req, res) => {
+    client.query("SELECT * FROM notifs", function(error, results,) {
+        if (!error) {
+            res.status(200).json(results);
+        } else {
+            res.status(500).json({
+                code: 500,
+                message: "unexpected error while fetching all notification objects",
+            });
+        }
+    });
+};
+const getNotifById = async (req, res) => {
+    client.query("SELECT * FROM notifs WHERE notif_id = $1"
+        , [req.params.notif_id],
+        function(error, results) {
+            if (!error) {
+                res.status(200).json(results);
+            } else {
+                res.status(404).json({
+                    code: 404,
+                    message: "notif not found",
+                })
+            }
+        })
+}
 
-function subscriptionExists(endpoint) {
-
-    let subscriptionExists = true;
-
-    if (subscription_cache.has(endpoint)) {
-        subscriptionExists = true;//just for code readability
-    }
-    else {
-        client.query("SELECT * FROM notifSubscriptions WHERE endpoint = $1", [endpoint], (errors, result, fields) => {
-
-            if (!errors && result.length() == 0) {
-                subscriptionExists = false
-                subscription_cache.push(endpoint)
+const updateNotif = async (req, res) => {
+    client.query(
+        "UPDATE notifs SET endpoint = $1, expiration_time= $2 , p256dh = $3, auth = $4 WHERE notif_id =$5",
+        [
+            req.body.endpoint,
+            req.body.expiration_time,
+            req.body.p256dh,
+            req.body.auth,
+            req.params.notif_id
+        ],
+        function(error, results) {
+            if (!error) {
+                res.status(204).send(results);
             }
             else {
-                console.log("error in fetching subscription from database")
-
-                subscriptionExists = true;//just for code readability
+                res.status(400).json({ code: 400, message: "invalid input", })
             }
+        }
+    );
+};
 
-        })
+const deleteNotif = async (req, res) => {
+    client.query(
+        "DELETE FROM notifs WHERE notif_id = $1",
+        [req.params.notif_id],
+        function(error, results) {
+            if (!error) {
+                res.status(204).json({ code: 204, message: "notif deleted successfully" });
+            } else {
+                res.status(400).json({
+                    code: 400,
+                    message: "notif not found",
+                });
+            }
+        }
+    );
+};
 
-
-    }
-    return subscriptionExists;
-}
+module.exports = { saveNotifObject, updateNotif, deleteNotif, getAllNotifs, getNotifById }

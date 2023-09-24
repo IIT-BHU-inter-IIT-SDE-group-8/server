@@ -199,6 +199,7 @@ const updateCommunityRequestStatus = async (req, res) => {
                 return res.status(400).json({ status: 400, message: "You are not eligible to perform this action" })
             }
             else {
+                await client.query("BEGIN")
                 const updateResult = await client.query(
                     "UPDATE community_requests SET request_status = $1 WHERE request_id = $2",
                     [setRequestStatus, requestId]
@@ -218,8 +219,10 @@ const updateCommunityRequestStatus = async (req, res) => {
                 } else if (setRequestStatus === "rejected") {
                     res.status(204).json({ status: 204, message: `User request to join community of community_id: ${community_id} has been rejected` });
                 }
+                await client.query("COMMIT")
             }
         } catch (err) {
+            await client.query("ROLLBACK")
             console.error(err);
             res.status(500).json({ status: 500, message: "Unknown error occurred while processing request" });
         }
