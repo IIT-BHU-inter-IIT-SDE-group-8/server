@@ -1,7 +1,6 @@
 const client = require('../config/configDB')
-const subscription_cache = []
 
-export async function saveNotifObject(req, res) {
+async function saveNotifObject(req, res) {
     const { endpoint, expiration_time, keys } = req.body
     const user_id = req.user.id
     if (subscriptionExists(endpoint)) {
@@ -97,4 +96,5 @@ const deleteNotif = async (req, res) => {
     );
 };
 
-module.exports = { saveNotifObject, updateNotif, deleteNotif, getAllNotifs, getNotifById }
+module.exports = {saveNotifObject, updateNotif, deleteNotif, getAllNotifs, getNotifById}
+
