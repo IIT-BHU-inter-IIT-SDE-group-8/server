@@ -7,11 +7,11 @@ const router = express.Router();
 
 router.route("/").get(getAllNotifs).post(checkAuthenticated, checkAuthenticated, saveNotifObject)
 router.route("/:notif_id").get(getNotifById).put(updateNotif).delete(deleteNotif)
-//router.route("/test").post((req, res) => {
-//  const { user_id, message } = req.body
-//notifyFriends(user_id, message)
-//res.send("success")
-//})
+router.route("/test").post((req, res) => {
+  const { user_id, message } = req.body
+notifyFriends(user_id, message)
+res.send("success")
+})
 
 
 
