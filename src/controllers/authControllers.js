@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-const client = require('../config/configDB.js');
+const {client} = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
 const sendTrue = require('../utils/sendTrue.js');
 const { ErrorHandler } = require("../middleware/error.js");
