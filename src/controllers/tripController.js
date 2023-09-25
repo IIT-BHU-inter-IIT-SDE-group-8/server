@@ -1,4 +1,5 @@
-const { client } = require('../config/configDB')
+const { client } = require('../config/configDB');
+const { notifyFriends } = require('../services/pushNotifications');
 
 const createTrip = async (req, res, next) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
@@ -15,6 +16,8 @@ const createTrip = async (req, res, next) => {
 
             })
         const message = "Trip created successfully";
+        //Subject to change
+        await notifyFriends(req.user.id, "Trip created")
         res.status(200).json({ message });
     } catch (error) {
         next(error);

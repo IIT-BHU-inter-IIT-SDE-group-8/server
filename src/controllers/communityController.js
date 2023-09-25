@@ -7,6 +7,7 @@ const client = require("../config/configDB");
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 const { queryTrips } = require('./tripController');
+const { notifyCommunityMembers } = require("../services/pushNotifications");
 
 const getAllCommunities = async (req, res) => {
     client.query("SELECT * FROM communities", function(error, results,) {
@@ -136,8 +137,9 @@ const addTripToCommunity = async (req, res) => {
     else {
         client.query(
             "INSERT INTO community_trips (community_id, trip_id) VALUES ($1,$2)", [req.params.community_id, req.params.trip_id],
-            function(error, results) {
+            async function(error, results) {
                 if (!error) {
+                    await notifyCommunityMembers(req.user.id, "Trip created")
                     res.status(201).send(results);
                 } else {
                     console.log(error);

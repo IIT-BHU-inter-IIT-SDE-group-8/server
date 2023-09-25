@@ -5,10 +5,10 @@ const createNotificationObjectTable = () => {
     client.query(
         `CREATE TABLE IF NOT EXISTS notifs (
                 notif_id SERIAL PRIMARY KEY,
-                endpoint VARCHAR(255) NOT NULL,
-                expiration_time TIMESTAMP,
+                endpoint TEXT NOT NULL UNIQUE,
+                expiration_time VARCHAR(256),
                 p256dh VARCHAR(256) NOT NULL,
-                auth VARCHAR(256) NOT NULL,
+                auth VARCHAR(256) NOT NULL
             );
 `, (err, result) => {
         if (err) {
@@ -23,13 +23,13 @@ const createUserNotifTable = () => {
         `CREATE TABLE IF NOT EXISTS user_notif (
                 user_notif_id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
-                notif_id INT NOT NULL
-                FOREIGN KEY(user_id) REFERENCES users(user_id)
+                notif_id INT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(user_id),
                 FOREIGN KEY(notif_id) REFERENCES notifs(notif_id)
             );
 `, (err, result) => {
         if (err) {
-            console.log("Error creating notif_subscriptions table: " + err)
+            console.log("Error creating user_notif table: " + err)
         }
     }
     )
