@@ -68,7 +68,7 @@ const register = async (req, res, next) => {
         await client.query(insertUserQuery, (err, results) => {
             const user_id = results.rows[0].user_id;
 
-            const authToken = jwt.sign({ user: { user_id } }, JWT_SECRET);
+            const authToken = jwt.sign({ user: { id: user.user_id } }, JWT_SECRET);
 
             // Store the authToken in a cookie
             res.cookie('authToken', authToken, { httpOnly: true });

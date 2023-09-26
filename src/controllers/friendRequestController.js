@@ -9,7 +9,7 @@ const friendship_cache = new Set()
 const getAllFriendRequestObjectsByUserId = (req, res) => {
     client.query(`
     SELECT * FROM friend_requests
-    WHERE user1_id = $1 or user2_id = $1
+    WHERE requestee_id = $1
     `, [req.user.id], (err, results) => {
         if (err) {
             return res.status(500).json({ status: 500, message: "unknown error occurred while fetching all the requests" })
@@ -25,12 +25,13 @@ const getAllFriendRequestObjectsByUserId = (req, res) => {
 
 async function createFriendRequestObject(req, res, next) {
     try {
-        const { user1_id, user2_id } = req.body
-        if (req.user.id !== user1_id && req.user.id !== user2_id) {
-            return res.status(404).json({ status: 404, message: "User is not allowed to perform this operation" })
+        const { requestee_id } = req.body
+        const requester_id = req.user.id;
+        if (requestee_id === requester_id) {
+            return res.status(404).json({ status: 404, message: "You can't send request to yourselves"})
         }
-        const requestAlreadyExists = await tableContainsLink("friend_requests", "user1_id", "user2_id", user1_id, user2_id, friend_requests_cache)
-        const usersAlreadyFriends = friendship_cache.has(String(user1_id) + '-' + String(user2_id))
+        const requestAlreadyExists = await tableContainsLink("friend_requests", "requester_id", "requestee_id", requester_id, requestee_id, friend_requests_cache)
+        const usersAlreadyFriends = friendship_cache.has(String(requester_id) + '-' + String(requestee_id))
 
         if (usersAlreadyFriends) {
             res.status(400).json({ status: 400, message: "Invalid request: Users are already friends" })
@@ -40,8 +41,8 @@ async function createFriendRequestObject(req, res, next) {
         }
         else {
 
-            client.query("INSERT INTO friend_requests (user1_id, user2_id, request_status) VALUES ($1, $2, $3) RETURNING *",
-                [user1_id, user2_id, "pending"],
+            client.query("INSERT INTO friend_requests (requester_id, requestee_id, request_status) VALUES ($1, $2, $3) RETURNING *",
+                [requester_id, requestee_id, "pending"],
                 (err, results) => {
                     if (!err) {
                         res.status(201).json(results.rows)
@@ -63,21 +64,21 @@ async function createFriendRequestObject(req, res, next) {
 
 async function deleteFriendRequestObjectById(req, res) {
     const request = await friendRequestLookup(req.params.friend_request_id)
-    const {user1_id, user2_id} = request;
-    const requestExists = await tableContainsLink("friend_requests", "user1_id", "user2_id", user1_id, user2_id, friend_requests_cache)
+    const {requester_id, requestee_id} = request;
+    const requestExists = await tableContainsLink("friend_requests", "requester_id", "requestee_id", requester_id, requestee_id, friend_requests_cache)
 
     if (requestExists) {
 
-        if (req.user.id == user1_id || req.user.id == user2_id) {
+        if (req.user.id == requester_id || req.user.id == requestee_id) {
 
-            client.query("DELETE FROM friend_requests WHERE request_id = $1 RETURNING *", [req.params.friend_request_id],
+            client.query("DELETE FROM friend_requests WHERE request_id = $1 OR requestee_id = $1 RETURNING *", [req.params.friend_request_id],
 
                 (err, results) => {
                     if (!err) {
                         res.status(200).json({
                             status: 200, message: "request object deleted successfully"
                         })
-                        removeElementFromSet(friend_requests_cache, String(results.rows[0].user1_id) + "-" + String(results.rows[0].user2_id))
+                        removeElementFromSet(friend_requests_cache, String(results.rows[0].requester_id) + "-" + String(results.rows[0].requestee_id))
                     }
                     else {
                         res.status(500).json({
@@ -99,6 +100,28 @@ async function deleteFriendRequestObjectById(req, res) {
     }
 }
 
+
+const updateCommunityRequestObject = async (req, res) => {
+    client.query(
+        "UPDATE friend_requests SET requester_id = $1, requestee_id = $2 , request_status =$3 WHERE request_id = $4",
+        [
+            req.body.requester_id,
+            req.body.requestee_id,
+            req.body.request_status,
+            req.params.friend_request_id
+
+        ],
+        function(error, results) {
+            if (!error) {
+                res.status(204).send(results);
+            }
+            else {
+                res.status(400).json({ code: 400, message: "invalid input", })
+            }
+        }
+    );
+};
+
 const updateFriendRequestStatus = async (req, res,next) => {
 
     try {
@@ -106,10 +129,10 @@ const updateFriendRequestStatus = async (req, res,next) => {
         const requestId = req.params.friend_request_id;
         const callerId = req.user.id
         const request = await friendRequestLookup(requestId)
-        const { user1_id, user2_id, request_status } = request
+        const { requester_id, requestee_id, request_status } = request
         if (request_status == "pending") {
             try {
-                if (callerId !== user1_id && callerId !== user2_id) {
+                if (callerId !== requester_id && callerId !== requestee_id) {
                     return res.status(404).json({ status: 404, message: "User is not allowed to perform this operation" })
                 }
                 if (setRequestStatus !== "accepted" && setRequestStatus !== "rejected" && setRequestStatus !== "pending") {
@@ -123,14 +146,14 @@ const updateFriendRequestStatus = async (req, res,next) => {
                             WHERE NOT EXISTS (
                                 SELECT 1 FROM friendship
                                 WHERE user1_id = $1 AND user2_id = $2
-                            );`, [user1_id, user2_id]
+                            );`, [requester_id, requestee_id]
                         );
-                        friendship_cache.add(String(user1_id) + '-' + String(user2_id))
+                        friendship_cache.add(String(requester_id) + '-' + String(requestee_id))
                         res.status(201).json({ status: 201, message: `Users successfully added as friends` });
                     } else if (setRequestStatus === "rejected") {
-                        let other_user_id = req.user.id === user1_id ? user2_id : user1_id;
-                        removeElementFromSet(friend_requests_cache, String(user1_id) + String(user2_id))
-                        removeElementFromSet(friend_requests_cache, String(user2_id) + String(user1_id))
+                        let other_user_id = req.user.id === requester_id ? requestee_id : requester_id;
+                        removeElementFromSet(friend_requests_cache, String(requester_id) + String(requestee_id))
+                        removeElementFromSet(friend_requests_cache, String(requestee_id) + String(requester_id))
                         res.status(200).json({ status: 200, message: `User of user_id: ${other_user_id} has been rejected` });
                     }else {
                         res.status(200).json({ status: 200, message: "Request is already in pending"})
