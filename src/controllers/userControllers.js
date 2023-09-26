@@ -8,13 +8,13 @@ const getAllUsers = async (req, res, next) => {
 
     try {
         client.query(`
-        SELECT u.user_id, u.user_name, u.user_bio, 
+        SELECT u.user_id, u.user_name, u.user_bio,
         CASE 
             WHEN u.user_id IN (SELECT f.user2_id FROM friendship f WHERE f.user1_id = $1) OR u.user_id IN (SELECT f.user1_id FROM friendship f WHERE f.user2_id = $1) THEN 'friends'
             WHEN u.user_id IN (SELECT requester_id FROM friend_requests WHERE request_status = 'pending') THEN 'got_request'
             WHEN u.user_id IN (SELECT requestee_id FROM friend_requests WHERE request_status = 'pending') THEN 'sent_request'
             ELSE 'not_friends'
-        END
+        END AS friendship_status
         from users u
         WHERE NOT u.user_id = $1
         `, [req.user.id], (err, results) => {
