@@ -4,14 +4,16 @@ const tableContainsLink = require("../utils/tabelContainsLink")
 const deleteFriendship = async (req, res, next) => {
     try {
         const callerId = req.user.id;
-        const requester_id = req.body.requester_id;
-        const requestee_id = req.body.requestee_id;
-        if (callerId !== requester_id && callerId !== requestee_id) {
+        const user1_id = req.body.user1_id;
+        const user2_id = req.body.user2_id;
+        if (callerId !== user1_id && callerId !== user2_id) {
             return res.status(404).json({ status: 404, message: "User is not allowed to perform this operation" })
         }
         client.query(
-            "DELETE FROM friendship WHERE requester_id = $1 AND requestee_id = $2 RETURNING *",
-            [requester_id, requestee_id],
+            `DELETE FROM friendship WHERE 
+            (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)
+            RETURNING *`,
+            [user1_id, user2_id],
             function (error, results) {
                 if (!error && results.rows.length !== 0) {
                     res.status(200).json({
@@ -39,8 +41,8 @@ const getAllFriendsOfMine = async (req, res, next) => {
     FROM friendship f
     JOIN users u ON (
         CASE
-            WHEN f.requester_id = $1 THEN f.requestee_id
-            WHEN f.requestee_id = $1 THEN f.requester_id
+            WHEN f.user1_id = $1 THEN f.user2_id
+            WHEN f.user2_id = $1 THEN f.user1_id
         END
     ) = u.user_id;
 `
@@ -77,8 +79,8 @@ const getAllFriendsOfUser = async (req, res, next) => {
     FROM friendship f
     JOIN users u ON (
         CASE
-            WHEN f.requester_id = $1 THEN f.requestee_id
-            WHEN f.requestee_id = $1 THEN f.requester_id
+            WHEN f.user1_id = $1 THEN f.user2_id
+            WHEN f.user2_id = $1 THEN f.user1_id
         END
     ) = u.user_id;
 `
