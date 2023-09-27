@@ -12,6 +12,8 @@ router.route("/test").post((req, res) => {
     notifyFriends(user_id, message)
 })
 router.route("/security_alert").post(checkAuthenticated, (req, res) => {
+    const user_id = req.user.id
+    const message = req.body.message
     sendSecurityNotif(user_id, message)
 })
 
