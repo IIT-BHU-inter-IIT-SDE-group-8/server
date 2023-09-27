@@ -79,6 +79,36 @@ const createTripJoinRequestTable = async () => {
     }
 }
 
+//trip invite table
+const createTripInviteTable = async(req, res, next) => {
+    createStatus();
+    try {
+        client.query(`CREATE TABLE IF NOT EXISTS trip_invites (
+            invite_id SERIAL PRIMARY KEY,
+            trip_id INT NOT NULL,
+            user_id INT NOT NULL,
+            admin_id INT NOT NULL,
+            invite_status request_status NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (admin_id) REFERENCES users(user_id),
+            FOREIGN KEY (community_id) REFERENCES communities(community_id)
+        );`)
+    } catch (error) {
+        next(error);
+    }
+}
+
+//trip invite status
+const createStatus = async(req, res, next) => {
+    try {
+        client.query(`
+            CREATE TYPE EXISTS request_status AS ENUM ('accepted', 'denied', 'pending');`
+        )
+    } catch (error) {
+        next(error);
+    }
+}
+
 //create trip admin table
 const createTripAdminTable = async (req, res, next) => {
     try {
@@ -98,5 +128,5 @@ const createTripAdminTable = async (req, res, next) => {
 }
 
 module.exports = {
-    createTrip, createCommunityTripTable, createUserTripTable, createTripJoinRequestTable, createTripAdminTable
+    createTrip, createCommunityTripTable, createUserTripTable, createTripJoinRequestTable, createTripAdminTable, createTripInviteTable
 };
