@@ -38,7 +38,7 @@ function getTripInviteByInviteId(req, res, next){
     }
 }
 
-function getAllInviteObjectsByUserId(req, res){
+function getAllInviteObjectsByUserId(req, res, next){
     try {
         client.query(`SELECT * FROM trip_invites WHERE user_id = $1`,[req.params.user_id],(err, results) => {
             (err, results) => {
@@ -149,7 +149,7 @@ async function deleteTripRequestObjectById(req, res, next){
     }
 }
 
-const updateTripRequestObject = async (req, res) => {
+const updateTripRequestObject = async (req, res, next) => {
     client.query(
         "UPDATE trip_invites SET user_id = $1, community_id = $2 , admin_id =$3, request_status = $4 WHERE invite_id = $4",
         [
