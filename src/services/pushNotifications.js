@@ -4,8 +4,8 @@ const { getAllCommunityRequestObjects } = require('../controllers/communityReque
 
 webpush.setVapidDetails(
     'mailto:example@yourdomain.org',
-    'BKUc_OvdGM4KqyMIt9Cx6oFzkyz7U1pRV01Ykhrp0q25EQulA2d5vmjhCWk3f2twLJ8Q89awxUEobuS30cBh-7U',
-    'SmQejCayuFIltL5_FIO_bWJ5eo1idQaoS9ieXnMVVrg'
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
 )
 
 // send notifs to friends
@@ -27,24 +27,26 @@ async function sendSecurityNotif(userId, message) {
             allEntries.add(object)
         })
     })
-    sendNotification(allEntries, message)
+    sendNotification(allEntries, "Security Alert", message)
 
 }
 
-async function notifyFriends(userId, message) {
+async function notifyFriends(userId, title, message) {
+    console.log(userId)
     try {
         notifObjects = await getAllFriendsSubscriptions(userId)
-        sendNotification(notifObjects, message)
+        console.log(notifObjects)
+        await sendNotification(notifObjects, title, message)
     }
     catch (err) {
         console.log("error while sending notifications to friends: " + err)
     }
 }
 
-async function notifyCommunityMembers(communityId, message) {
+async function notifyCommunityMembers(communityId, title, message) {
     try {
         const notifObjects = await getAllCommunityMembersSubscription(communityId)
-        sendNotification(notifObjects, message)
+        sendNotification(notifObjects, title, message)
     }
     catch {
         console.log("Error occurred while notifying all community members" + err)
@@ -127,11 +129,16 @@ async function getAllCommunitiesOfUser(userId) {
         console.log("Error occurred while getting all community ids of user: " + err)
     }
 }
-function sendNotification(notifObjects, message) {
-    notifObjects.rows.forEach((result) => {
-        let sub = { endpoint: result.endpoint, expiration_time: result.expiration_time, keys: { auth: result.auth, p256dh: result.p256dh } }
-        webpush.sendNotification(sub, message);
-    })
+async function sendNotification(notifObjects, title, message) {
+    try {
+        notifObjects.rows.map((result) => {
+            let sub = { endpoint: result.endpoint, expiration_time: result.expiration_time, keys: { auth: result.auth, p256dh: result.p256dh } }
+            webpush.sendNotification(sub, `{ "title": ${title}, "message": ${message} }`);
+        })
+    }
+    catch (err) {
+        console.log(err)
+    }
 }
 module.exports = { sendSecurityNotif, notifyFriends, notifyCommunityMembers }
 
