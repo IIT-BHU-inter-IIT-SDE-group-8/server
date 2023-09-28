@@ -23,7 +23,7 @@ async function sendSecurityNotif(userId, message, coordinates) {
                 allEntries.add(object)
             })
         })
-        sendNotification(allEntries, "Security Alert", message, coordinates)
+        sendNotification(allEntries, "Security Alert", message, "security", coordinates)
     }
     catch (err) {
         console.log("Error occurred while sending security notification: " + err)
@@ -34,7 +34,7 @@ async function sendSecurityNotif(userId, message, coordinates) {
 async function notifyFriends(userId, title, message) {
     try {
         notifObjects = await getAllFriendsSubscriptions(userId)
-        await sendNotification(notifObjects, title, message)
+        await sendNotification(notifObjects, title, message, "casual")
     }
     catch (err) {
         console.log("error while sending notifications to friends: " + err)
@@ -44,7 +44,7 @@ async function notifyFriends(userId, title, message) {
 async function notifyCommunityMembers(communityId, title, message) {
     try {
         const notifObjects = await getAllCommunityMembersSubscription(communityId)
-        sendNotification(notifObjects, title, message)
+        sendNotification(notifObjects, title, message, "casual")
     }
     catch {
         console.log("Error occurred while notifying all community members" + err)
@@ -127,15 +127,15 @@ async function getAllCommunitiesOfUser(userId) {
         console.log("Error occurred while getting all community ids of user: " + err)
     }
 }
-async function sendNotification(notifObjects, title, message, coordinates) {
+async function sendNotification(notifObjects, title, message, type, coordinates) {
     try {
         notifObjects.rows.map((result) => {
             let sub = { endpoint: result.endpoint, expiration_time: result.expiration_time, keys: { auth: result.auth, p256dh: result.p256dh } }
             if (coordinates) {
-                webpush.sendNotification(sub, `{ "title": "${title}", "message": "${message}", "coordinates": ${coordinates}`);
+                webpush.sendNotification(sub, `{ "title": "${title}", "type": "${type}", "message": "${message}", "coordinates": "${coordinates}"`);
             }
             else {
-                webpush.sendNotification(sub, `{ "title": "${title}", "message": "${message}"}`);
+                webpush.sendNotification(sub, `{ "title": "${title}", "type": "${type}", "message": "${message}"}`);
             }
         }
         )
