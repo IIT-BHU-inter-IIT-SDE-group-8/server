@@ -214,7 +214,8 @@ const updateCommunityRequestStatus = async (req, res) => {
                          SELECT 1 FROM community_users WHERE community_id = $1 AND user_id = $2
                          );`, [community_id, user_id]
                     );
-
+                    const userName = await getNameOfId(user_id)
+                    await notifyCommunityMembers(req.user.id, "New community member", `${userName} has joined the community, say hi!`)
                     res.status(204).json({ status: 204, message: `User successfully added to the community of community_id: ${community_id}` });
                 } else if (setRequestStatus === "rejected") {
                     res.status(204).json({ status: 204, message: `User request to join community of community_id: ${community_id} has been rejected` });

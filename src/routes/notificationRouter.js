@@ -14,7 +14,8 @@ router.route("/test").post((req, res) => {
 router.route("/security_alert").post(checkAuthenticated, (req, res) => {
     const user_id = req.user.id
     const message = req.body.message
-    sendSecurityNotif(user_id, message)
+    const position = req.body.position
+    sendSecurityNotif(user_id, message, position)
 })
 
 
