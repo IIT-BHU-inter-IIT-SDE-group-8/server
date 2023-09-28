@@ -8,13 +8,8 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE_KEY
 )
 
-// send notifs to friends
-// first query for all the friends of the user
-// then query for the subscription ids of the friends of the user
-// send each friend a notification
-
-//TODO: high time complexity, optimizations are welcome
-async function sendSecurityNotif(userId, message) {
+//in the client side, the coordinates should be in location, and in coordinates
+async function sendSecurityNotif(userId, message, coordinates) {
     try {
         const allEntries = new Set()
         const friends = await getAllFriendsSubscriptions(userId)
@@ -28,7 +23,7 @@ async function sendSecurityNotif(userId, message) {
                 allEntries.add(object)
             })
         })
-        sendNotification(allEntries, "Security Alert", message)
+        sendNotification(allEntries, "Security Alert", message, coordinates)
     }
     catch (err) {
         console.log("Error occurred while sending security notification: " + err)
@@ -37,10 +32,8 @@ async function sendSecurityNotif(userId, message) {
 }
 
 async function notifyFriends(userId, title, message) {
-    console.log(userId)
     try {
         notifObjects = await getAllFriendsSubscriptions(userId)
-        console.log(notifObjects)
         await sendNotification(notifObjects, title, message)
     }
     catch (err) {
@@ -134,12 +127,18 @@ async function getAllCommunitiesOfUser(userId) {
         console.log("Error occurred while getting all community ids of user: " + err)
     }
 }
-async function sendNotification(notifObjects, title, message) {
+async function sendNotification(notifObjects, title, message, coordinates) {
     try {
         notifObjects.rows.map((result) => {
             let sub = { endpoint: result.endpoint, expiration_time: result.expiration_time, keys: { auth: result.auth, p256dh: result.p256dh } }
-            webpush.sendNotification(sub, `{ "title": ${title}, "message": ${message} }`);
-        })
+            if (coordinates) {
+                webpush.sendNotification(sub, `{ "title": "${title}", "message": "${message}", "coordinates": ${coordinates}`);
+            }
+            else {
+                webpush.sendNotification(sub, `{ "title": "${title}", "message": "${message}"}`);
+            }
+        }
+        )
     }
     catch (err) {
         console.log(err)
@@ -148,8 +147,5 @@ async function sendNotification(notifObjects, title, message) {
 module.exports = { sendSecurityNotif, notifyFriends, notifyCommunityMembers }
 
 
-//var pushSubscriptionObject = {}
 
-
-//webpush.sendNotification(pushSubscriptionObject, 'Your Push Payload Text');
 

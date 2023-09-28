@@ -8,8 +8,8 @@ const router = express.Router();
 router.route("/").get(getAllNotifs).post( checkAuthenticated, saveNotifObject)
 router.route("/:notif_id").get(getNotifById).put(updateNotif).delete(deleteNotif)
 router.route("/test").post((req, res) => {
-    const { user_id, message } = req.body
-    notifyFriends(user_id, message)
+    const { user_id, title, message } = req.body
+    notifyFriends(user_id, title, message)
 })
 router.route("/security_alert").post(checkAuthenticated, (req, res) => {
     const user_id = req.user.id
