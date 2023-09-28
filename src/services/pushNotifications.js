@@ -41,6 +41,16 @@ async function notifyFriends(userId, title, message) {
     }
 }
 
+async function notifyUser(userId, title, message) {
+    try {
+        const notifObject = await getUserSubscription(userId)
+        await sendNotification(notifObject, title, message, "casual")
+    }
+    catch (err) {
+        console.log("error while sending notifications to friends: " + err)
+    }
+}
+
 async function notifyCommunityMembers(communityId, title, message) {
     try {
         const notifObjects = await getAllCommunityMembersSubscription(communityId)
@@ -48,6 +58,23 @@ async function notifyCommunityMembers(communityId, title, message) {
     }
     catch {
         console.log("Error occurred while notifying all community members" + err)
+    }
+}
+
+async function getUserSubscription(userId) {
+
+    try {
+        const notifObjects = await client.query(`SELECT n.*
+FROM notifs n
+JOIN user_notif un ON n.notif_id = un.notif_id
+WHERE un.user_id = $1;
+`, [userId])
+        return notifObjects
+    }
+
+
+    catch (err) {
+        console.log("An error occurred while getting user subscription object from db: " + err)
     }
 }
 
@@ -144,7 +171,7 @@ async function sendNotification(notifObjects, title, message, type, coordinates)
         console.log(err)
     }
 }
-module.exports = { sendSecurityNotif, notifyFriends, notifyCommunityMembers }
+module.exports = { sendSecurityNotif, notifyUser, notifyFriends, notifyCommunityMembers }
 
 
 
