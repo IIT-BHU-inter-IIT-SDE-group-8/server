@@ -6,7 +6,7 @@ const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 const { queryTrips, findAdmin, fetchGroupIds, tripAdminQuery } = require('./tripController');
 const { ErrorHandler } = require('../middleware/error')
-const communityAdminQuery = `SELECT user_id FROM community_admin WHERE trip_id = $1`;
+const communityAdminQuery = `SELECT community_admin_id FROM communities WHERE community_id = $1`;
 const query = `SELECT community_id FROM user_community WHERE user_id = $1`;
 const membersQuery = `SELECT user_id FROM user_community WHERE community_id = $1`;
 let communityIds = new Set();
