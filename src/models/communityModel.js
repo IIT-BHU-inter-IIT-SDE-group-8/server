@@ -53,17 +53,38 @@ CREATE TABLE IF NOT EXISTS community_requests (
 
 const createStatus = () => {
     client.query(`
-        CREATE TYPE EXISTS request_status AS ENUM ('accepted', 'denied', 'pending');`, (err, res) => {
-        if (err) {
-            console.log("Error while creating status type: " + err)
-        }
-    })
+    SELECT typname FROM pg_type WHERE typname = 'request_status';`, (err, res) => {
+    if (err) {
+        console.log("Error checking for existing enum type: " + err);
+    } else if (res.rows.length === 0) {
+        // The enum type does not exist, so create it
+        client.query(`
+            CREATE TYPE request_status AS ENUM ('accepted', 'rejected', 'pending');`, (err, res) => {
+            if (err) {
+                console.log("Error while creating status type: " + err);
+            } else {
+                console.log('request_status type created successfully');
+            }
+        });
+    } else {
+        // The enum type already exists
+    }
+})
 }
 const createTypes = () => {
     client.query(`
-        CREATE TYPE request_type AS ENUM ('invite', 'request');`, (err, res) => {
+    SELECT typname FROM pg_type WHERE typname = 'request_type';`, (err, res) => {
         if (err) {
-            console.log("Error while creating type type: " + err)
+            console.log("Error checking for existing enum type: " + err);
+        } else if (res.rows.length === 0) {
+            // The enum type does not exist, so create it
+            client.query(`
+            CREATE TYPE request_type AS ENUM ('invite', 'request');`, (err, res) => {
+                if (err) {
+                    console.log("Error while creating type type: " + err)
+                }});
+        } else {
+            // The enum type already exists
         }
     })
 }

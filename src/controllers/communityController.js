@@ -11,7 +11,7 @@ const { queryTrips } = require('./tripController');
 const getAllCommunities = async (req, res) => {
     client.query("SELECT * FROM communities", function(error, results,) {
         if (!error) {
-            res.status(200).json(results);
+            res.status(200).json(results.rows);
         } else {
             res.status(500).json({
                 code: 500,
@@ -48,7 +48,7 @@ const getCommunityById = async (req, res) => {
         , [req.params.community_id],
         function(error, results) {
             if (!error) {
-                res.status(200).json(results);
+                res.status(200).json(results.rows);
             } else {
                 res.status(404).json({
                     code: 404,
@@ -68,7 +68,7 @@ const updateCommunity = async (req, res) => {
         ],
         function(error, results) {
             if (!error) {
-                res.status(204).send(results);
+                res.status(204).send(results.rows);
             }
             else {
                 res.status(400).json({ code: 400, message: "invalid input", })
@@ -106,7 +106,7 @@ WHERE community_trips.community_id = $1;
 
         function(error, results) {
             if (!error && results.rows.length != 0) {
-                res.status(201).send(results);
+                res.status(201).send(results.rows);
             } else if (results.rows.length == 0) {
                 res.status(400).json({
                     code: 400,
@@ -138,7 +138,7 @@ const addTripToCommunity = async (req, res) => {
             "INSERT INTO community_trips (community_id, trip_id) VALUES ($1,$2)", [req.params.community_id, req.params.trip_id],
             function(error, results) {
                 if (!error) {
-                    res.status(201).send(results);
+                    res.status(201).send(results.rows);
                 } else {
                     console.log(error);
                     res.status(400).json({
@@ -190,7 +190,7 @@ WHERE community_users.community_id = $1;
 
         function(error, results) {
             if (!error && results.rows.length != 0) {
-                res.status(201).send(results);
+                res.status(201).send(results.rows);
             } else if (results.rows.length == 0) {
                 res.status(400).json({
                     code: 400,
@@ -222,7 +222,7 @@ const addUserToCommunity = async (req, res) => {
             "INSERT INTO community_users (community_id, user_id) VALUES ($1,$2)", [req.params.community_id, req.params.user_id],
             function(error, results) {
                 if (!error) {
-                    res.status(201).send(results);
+                    res.status(201).send(results.rows);
                 } else {
                     console.log(error);
                     res.status(400).json({
