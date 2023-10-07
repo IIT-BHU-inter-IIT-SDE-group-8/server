@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-const client = require('../config/configDB.js');
+const {client} = require('../config/configDB.js');
 const JWT_SECRET = process.env.JWT_SECRET
 const sendTrue = require('../utils/sendTrue.js');
 const { ErrorHandler } = require("../middleware/error.js");
@@ -68,7 +68,7 @@ const register = async (req, res, next) => {
         await client.query(insertUserQuery, (err, results) => {
             const user_id = results.rows[0].user_id;
 
-            const authToken = jwt.sign({ user: { user_id } }, JWT_SECRET);
+            const authToken = jwt.sign({ user: { id: user.user_id } }, JWT_SECRET);
 
             // Store the authToken in a cookie
             res.cookie('authToken', authToken, { httpOnly: true });

@@ -3,8 +3,9 @@ const router = express.Router();
 const { getAllUsers, updateUser, deleteUser, link_user_to_trip, getUserById, getAllTripsOfUser, unlinkTripAndUser } = require('../controllers/userControllers');
 const { getAllTripJoinRequests, getTripById } = require('../controllers/tripController');
 const { getAllInviteObjectsByUserId, getAllRequestObjectsByAdminId } = require('../controllers/communityRequestController');
+const { checkAuthenticated } = require('../middleware/checkAuthentication');
 
-router.get('/', getAllUsers);
+router.get('/', checkAuthenticated, getAllUsers);
 router.route("/:user_id").get(getUserById).put(updateUser).delete(deleteUser);
 
 

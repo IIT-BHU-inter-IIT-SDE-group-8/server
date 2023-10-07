@@ -70,13 +70,13 @@ const getAllTripsOfUserAndFriends = async (req, res, next) => {
     try {
 
         client.query(`WITH UserFriends AS (
-            SELECT DISTINCT user2_id AS friend_id
+            SELECT DISTINCT requestee_id AS friend_id
             FROM friendship
-            WHERE user1_id = $1
+            WHERE requester_id = $1
             UNION
-            SELECT DISTINCT user1_id AS friend_id
+            SELECT DISTINCT requester_id AS friend_id
             FROM friendship
-            WHERE user2_id = $1
+            WHERE requestee_id = $1
         )
 
         SELECT DISTINCT UT.trip_id
