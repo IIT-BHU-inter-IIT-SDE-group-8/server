@@ -15,8 +15,10 @@ const authRouter = require('./src/routes/authRouter');
 const tripRouter = require('./src/routes/tripRouter');
 const userRouter = require('./src/routes/userRouter');
 const communityRequestRouter = require('./src/routes/communityRequestRouter.js')
+const notifRouter = require('./src/routes/notificationRouter.js')
 const friendRequestRouter = require('./src/routes/friendRequestRouter.js')
 const friendshipRouter = require('./src/routes/friendshipRouter.js')
+
 
 //Additional middlewares
 app.use(express.json())
@@ -53,6 +55,7 @@ app.use("/", authRouter);
 app.use('/trips', tripRouter);
 app.use('/communities', communityRouter)
 app.use('/users', userRouter);
+app.use('/notifs', notifRouter);
 app.use('/community_requests', communityRequestRouter);
 app.use('/friend_requests', friendRequestRouter);
 app.use('/friendship', friendshipRouter);

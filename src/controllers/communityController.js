@@ -7,6 +7,8 @@ const client = require("../config/configDB");
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 const { queryTrips } = require('./tripController');
+const { notifyCommunityMembers } = require("../services/pushNotifications");
+const { getNameOfId } = require("../utils/getNameofId");
 
 const getAllCommunities = async (req, res) => {
     client.query("SELECT * FROM communities", function(error, results,) {
@@ -136,9 +138,12 @@ const addTripToCommunity = async (req, res) => {
     else {
         client.query(
             "INSERT INTO community_trips (community_id, trip_id) VALUES ($1,$2)", [req.params.community_id, req.params.trip_id],
-            function(error, results) {
+            async function(error, results) {
                 if (!error) {
-                    res.status(201).send(results.rows);
+                    const userName = await getNameOfId(req.user.id)
+                    await notifyCommunityMembers(req.user.id, "Trip Posted", `${userName} has posted a new Trip in the community, check it out!`)
+                    res.status(201).send(results);
+
                 } else {
                     console.log(error);
                     res.status(400).json({
@@ -220,9 +225,12 @@ const addUserToCommunity = async (req, res) => {
     else {
         client.query(
             "INSERT INTO community_users (community_id, user_id) VALUES ($1,$2)", [req.params.community_id, req.params.user_id],
-            function(error, results) {
+            async function(error, results) {
                 if (!error) {
-                    res.status(201).send(results.rows);
+                    const userName = await getNameOfId(req.params.user_id)
+                    await notifyCommunityMembers(req.user.id, "New community member", `${userName} has joined the community, say hi!`)
+                    res.status(201).send(results);
+
                 } else {
                     console.log(error);
                     res.status(400).json({
@@ -247,7 +255,7 @@ const removeUserFromCommunity = async (req, res) => {
     client.query(
         "DELETE FROM community_users WHERE community_id = $1 AND user_id = $2",
         [req.params.community_id, req.params.user_id],
-        function(error, results) {
+        async function(error, results) {
             if (!error) {
                 removeElementFromSet(community_users_cache, String(req.params.community_id) + "-" + String(req.params.user_id))
                 res.status(204).json({

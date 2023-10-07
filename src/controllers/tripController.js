@@ -1,4 +1,6 @@
-const { client } = require('../config/configDB')
+const { client } = require('../config/configDB');
+const { getNameOfId } = require("../utils/getNameofId.js")
+const { notifyFriends } = require('../services/pushNotifications');
 
 const createTrip = async (req, res, next) => {
     const { name, origin, destination, desc, departure_dateTime, arrival_dateTime } = req.body
@@ -15,6 +17,9 @@ const createTrip = async (req, res, next) => {
 
             })
         const message = "Trip created successfully";
+        const userName = await getNameOfId(req.user.id)
+        //Subject to change
+        await notifyFriends(req.user.id, "New Trip", `${userName} has planned a new Trip, check it out!`)
         res.status(200).json({ message });
     } catch (error) {
         next(error);
@@ -34,6 +39,9 @@ const updateTrip = async (req, res, next) => {
                 throw err;
             }
         })
+        const userName = await getNameOfId(req.user.id)
+        //Subject to change
+        await notifyFriends(req.user.id, "Update in Trip", `${userName} has updated his plan for a Trip, check it out!`)
         res.status(200).json({ message: "trip updated successfully!" });
     } catch (error) {
         next(error);
