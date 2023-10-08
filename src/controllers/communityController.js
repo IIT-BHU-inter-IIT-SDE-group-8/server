@@ -6,31 +6,21 @@ const community_cache = [];
 const {client} = require("../config/configDB");
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
-const { queryTrips, findAdmin, fetchGroupIds, tripAdminQuery } = require('./tripController');
-const { ErrorHandler } = require('../middleware/error')
-const communityAdminQuery = `SELECT community_admin_id FROM communities WHERE community_id = $1`;
-const query = `SELECT community_id FROM user_community WHERE user_id = $1`;
-const membersQuery = `SELECT user_id FROM user_community WHERE community_id = $1`;
-let communityIds = new Set();
-let userCommunityIds = new Set();
-let memberIds = new Set();
-let members_set = new Set();
+const { queryTrips } = require('./tripController');
+const { notifyCommunityMembers } = require("../services/pushNotifications");
+const { getNameOfId } = require("../utils/getNameofId");
 
-const getAllCommunities = async (req, res, next) => {
-    try {
-        client.query("SELECT * FROM communities", function(error, results,) {
-            if (!error) {
-                res.status(200).json(results);
-            } else {
-                res.status(500).json({
-                    code: 500,
-                    message: "unexpected error",
-                });
-            }
-        });
-    } catch (error) {
-        next(error);
-    }
+const getAllCommunities = async (req, res) => {
+    client.query("SELECT * FROM communities", function(error, results,) {
+        if (!error) {
+            res.status(200).json(results.rows);
+        } else {
+            res.status(500).json({
+                code: 500,
+                message: "unexpected error",
+            });
+        }
+    });
 };
 
 const createCommunity = async (req, res) => {
@@ -55,164 +45,86 @@ const createCommunity = async (req, res) => {
     )
 }
 
-const getCommunityById = async (req, res, next) => {
-
-    const user_id = req.user.id;
-    const community_id = parseInt(req.params.community_id,10);
-
-    try {
-
-            userCommunityIds = fetchGroupIds(user_id, query, communityIds);
-
-            if(userCommunityIds.has(community_id)){
-                client.query("SELECT *  FROM communities WHERE community_id = $1"
-                , [req.params.community_id],
-                function(error, results) {
-                    if (!error) {
-                        res.status(200).json(results);
-                    } else {
-                        res.status(404).json({
-                            code: 404,
-                            message: "community not found ",
-                        })
-                    }
-                })
+const getCommunityById = async (req, res) => {
+    client.query("SELECT *  FROM communities WHERE community_id = $1"
+        , [req.params.community_id],
+        function(error, results) {
+            if (!error) {
+                res.status(200).json(results.rows);
             } else {
-                res.status(401).json({message:"cannot get community!!"});
+                res.status(404).json({
+                    code: 404,
+                    message: "community not found ",
+                })
             }
-        
-    } catch (error) {
-        next(error);
-    }
+        })
 }
 
 const updateCommunity = async (req, res) => {
-    const auth_user_id = req.user.id;
-    const community_id = parseInt(req.params.community_id,10); 
-
-    try {
-        const AdminId = findAdmin(communityAdminQuery, community_id)
-        if(AdminId === auth_user_id)
-        {
-            client.query (
-                "UPDATE communities SET community_name = $1, community_desc= $2 WHERE community_id =$3",
-                [
-                    req.body.community_name,
-                    req.body.community_desc,
-                    req.params.community_id
-                ],
-                function(error, results) {
-                    if (!error) {
-                        res.status(204).send(results);
-                    }
-                    else {
-                        res.status(400).json({ code: 400, message: "invalid input", })
-                    }
-                }
-            );
-        }
-        else
-        {
-            res.status(401).json({message:"Can't update community"});
-        }
-        
-    } catch (error) {
-        next(error);
-    }
-};
-
-const deleteCommunity = async (req, res, next) => {
-
-    const community_id = parseInt(req.params.community_id,10);
-    const auth_user_id = req.user.id;
-
-    try {
-        const AdminId = findAdmin(communityAdminQuery, community_id)
-        if(auth_user_id === AdminId)
-        {
-            client.query(
-                "DELETE FROM communities WHERE community_id = $1",
-                [req.params.community_id],
-                function(error, results) {
-                    if (!error) {
-                        res.status(204).json({ code: 204, message: "community deleted successfully" });
-                    } else {
-                        res.status(400).json({
-                            code: 400,
-                            message: "community not found",
-                        });
-                    }
-                }
-            );
-        } else {
-            res.status(401).json({message : "can't delete the trip!!"})
-        }
-    } catch (error) {
-        next(error);
-    }
-    
-};
-
-function findCommunityMembers(membersQuery, community_id, membersSet)
-{
-    return new Promise((resolve, reject) => {
-        client.query(membersQuery, [community_id], (err, results) => {
-            if(err){
-                reject(err);
-            } else {
-                results.rows.forEach(ele => {
-                    membersSet.add(ele.user_id);
-                })
-                resolve(membersSet);
+    client.query(
+        "UPDATE communities SET community_name = $1, community_desc= $2 WHERE community_id =$3",
+        [
+            req.body.community_name,
+            req.body.community_desc,
+            req.params.community_id
+        ],
+        function(error, results) {
+            if (!error) {
+                res.status(204).send(results.rows);
             }
-        })
-    })
-}
+            else {
+                res.status(400).json({ code: 400, message: "invalid input", })
+            }
+        }
+    );
+};
 
-const getAllTripsOfCommunity = async (req, res, next) => {
+const deleteCommunity = async (req, res) => {
+    client.query(
+        "DELETE FROM communities WHERE community_id = $1",
+        [req.params.community_id],
+        function(error, results) {
+            if (!error) {
+                res.status(204).json({ code: 204, message: "community deleted successfully" });
+            } else {
+                res.status(400).json({
+                    code: 400,
+                    message: "community not found",
+                });
+            }
+        }
+    );
+};
 
-    const tripIds = new Set();
-    const community_id = parseInt(req.params.community_id, 10);
-    const user_id = req.user.id;
-    
-    try {
+const getAllTripsOfCommunity = async (req, res) => {
 
-        findCommunityMembers(membersQuery, community_id, members_set).then(member_Id => {
-        if(member_Id.has(user_id))
-        {
-            let sqlQuery = `
-            SELECT DISTINCT CT.trip_id
-            FROM community_trip CT
-            WHERE CT.community_id = ${community_id}
-            `;
+    client.query(`
+SELECT trips.*
+FROM trips
+INNER JOIN community_trips ON trips.trip_id = community_trips.trip_id
+WHERE community_trips.community_id = $1;
+`
+        , [req.params.community_id],
 
-            client.query(sqlQuery, (err, results) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ error: 'An error occurred while querying the database' });
-                }
-                else if (results.rows.length == 0) {
-                    res.status(400).json({
-                        code: 400,
-                        message: "no trips present in the community",
-                    });
-                }
-
-                results.rows.forEach((row) => {
-                    tripIds.add(row.trip_id);
+        function(error, results) {
+            if (!error && results.rows.length != 0) {
+                res.status(201).send(results.rows);
+            } else if (results.rows.length == 0) {
+                res.status(400).json({
+                    code: 400,
+                    message: "no trips present in the community",
+                });
+            } else {
+                console.log(error);
+                res.status(500).json({
+                    code: 500,
+                    message: "unknown error occurred",
                 });
 
-                queryTrips(req, res, tripIds);
-            });
+            }
         }
-     else {
-            res.status(401).json({message: "can't get the trips!!"})
-        }
-    })
-    } catch (error) {
-        next(error);
-    }
-};
+    )
+}
 
 const addTripToCommunity = async (req, res, next) => {
 
@@ -226,9 +138,12 @@ const addTripToCommunity = async (req, res, next) => {
     else {
         client.query(
             "INSERT INTO community_trips (community_id, trip_id) VALUES ($1,$2)", [req.params.community_id, req.params.trip_id],
-            function(error, results) {
+            async function(error, results) {
                 if (!error) {
+                    const userName = await getNameOfId(req.user.id)
+                    await notifyCommunityMembers(req.user.id, "Trip Posted", `${userName} has posted a new Trip in the community, check it out!`)
                     res.status(201).send(results);
+
                 } else {
                     console.log(error);
                     res.status(400).json({
@@ -280,7 +195,7 @@ WHERE community_users.community_id = $1;
 
         function(error, results) {
             if (!error && results.rows.length != 0) {
-                res.status(201).send(results);
+                res.status(201).send(results.rows);
             } else if (results.rows.length == 0) {
                 res.status(400).json({
                     code: 400,
@@ -310,9 +225,12 @@ const addUserToCommunity = async (req, res) => {
     else {
         client.query(
             "INSERT INTO community_users (community_id, user_id) VALUES ($1,$2)", [req.params.community_id, req.params.user_id],
-            function(error, results) {
+            async function(error, results) {
                 if (!error) {
+                    const userName = await getNameOfId(req.params.user_id)
+                    await notifyCommunityMembers(req.user.id, "New community member", `${userName} has joined the community, say hi!`)
                     res.status(201).send(results);
+
                 } else {
                     console.log(error);
                     res.status(400).json({
@@ -337,7 +255,7 @@ const removeUserFromCommunity = async (req, res) => {
     client.query(
         "DELETE FROM community_users WHERE community_id = $1 AND user_id = $2",
         [req.params.community_id, req.params.user_id],
-        function(error, results) {
+        async function(error, results) {
             if (!error) {
                 removeElementFromSet(community_users_cache, String(req.params.community_id) + "-" + String(req.params.user_id))
                 res.status(204).json({

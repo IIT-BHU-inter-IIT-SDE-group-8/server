@@ -4,9 +4,9 @@ const {
   createTrip, createCommunityTripTable, createUserTripTable, createTripJoinRequestTable
   // , createCommunityAdminTable
 } = require('./src/models/tripModels');
-const { createCommunityAdminTable, createUserCommunityTable } = require('./src/models/communityModel.js')
-const { link_user_to_user, createFriendRequestTable } = require('./src/models/friendsModel.js');
+const { createFriendsTable, createFriendRequestsTable } = require('./src/models/friendsModel.js');
 const { createCommunityRequestTable, createCommunitiesTable } = require('./src/models/communityModel.js');
+const { createNotificationObjectTable, createUserNotifTable } = require('./src/models/notificationModel.js');
 const PORT = process.env.PORT || 4000;
 
 // Database Models
@@ -15,9 +15,12 @@ createUsersTable();
 createTrip();
 createCommunityRequestTable();
 createCommunitiesTable()
-createCommunityAdminTable();
-createFriendRequestTable();
+createNotificationObjectTable()
+createUserNotifTable()
+createFriendsTable();
+createFriendRequestsTable();
 createUserBioTable();
+
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

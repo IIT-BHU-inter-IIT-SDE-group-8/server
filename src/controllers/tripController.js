@@ -1,4 +1,6 @@
-const { client } = require('../config/configDB')
+const { client } = require('../config/configDB');
+const { getNameOfId } = require("../utils/getNameofId.js")
+const { notifyFriends } = require('../services/pushNotifications');
 const tripAdminQuery = `SELECT user_id FROM trip_admin WHERE trip_id = $1`;
 const myTripsQuery = `SELECT trip_id FROM user_trip WHERE user_id = $1`;
 const trip_users_cache = new Set();

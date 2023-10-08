@@ -1,7 +1,9 @@
 const client = require("../config/configDB");
+const { notifyUser } = require("../services/pushNotifications");
 const { adminLookup } = require("../utils/adminLookup");
 const { removeElementFromSet } = require("../utils/cache");
 const communityRequestLookup = require("../utils/communityRequestLookup");
+const { getNameOfId } = require("../utils/getNameofId");
 const community_requests_cache = new Set()
 const tableContainsLink = require("../utils/tabelContainsLink");
 const { community_users_cache } = require("./communityController");
@@ -106,6 +108,12 @@ async function createCommunityRequestObject(req, res) {
             [user_id, community_id, admin_id, request_type, "pending"],
             (err, results) => {
                 if (!err) {
+                    if (request_type == "invite") {
+                        notifyUser(user_id, "Community Invite Received", "You have received a community invite")
+                    }
+                    else {
+                        notifyUser(admin_id, "Community Request Received", "You have received a community join request")
+                    }
                     res.status(201).json(results)
                 }
                 else {
@@ -191,7 +199,6 @@ const updateCommunityRequestStatus = async (req, res) => {
     const { community_id, user_id, admin_id, request_type, request_status } = request
     if (request_status == "pending") {
         try {
-
             if (setRequestStatus !== "accepted" && setRequestStatus !== "rejected" && setRequestStatus !== "pending") {
                 return res.status(400).json({ status: 400, message: `Invalid request_status: ${setRequestStatus}, should either be "accepted", "rejected" or "pending"` });
             }
@@ -199,6 +206,7 @@ const updateCommunityRequestStatus = async (req, res) => {
                 return res.status(400).json({ status: 400, message: "You are not eligible to perform this action" })
             }
             else {
+                await client.query("BEGIN")
                 const updateResult = await client.query(
                     "UPDATE community_requests SET request_status = $1 WHERE request_id = $2",
                     [setRequestStatus, requestId]
@@ -213,13 +221,24 @@ const updateCommunityRequestStatus = async (req, res) => {
                          SELECT 1 FROM community_users WHERE community_id = $1 AND user_id = $2
                          );`, [community_id, user_id]
                     );
-
+                    const userName = await getNameOfId(user_id)
+                    await notifyCommunityMembers(req.user.id, "New community member", `${userName} has joined the community, say hi!`)
                     res.status(204).json({ status: 204, message: `User successfully added to the community of community_id: ${community_id}` });
                 } else if (setRequestStatus === "rejected") {
+                    if (request_type == "invite") {
+                        const userName = await getNameOfId(user_id)
+                        notifyUser(admin_id, "Community Invite Denied", `Your community invite to ${userName} has been denied`)
+                    }
+                    else {
+                        const adminName = await getNameOfId(admin_id)
+                        notifyUser(admin_id, "Community Request Denied", `Your community request to ${adminName} has been denied`)
+                    }
                     res.status(204).json({ status: 204, message: `User request to join community of community_id: ${community_id} has been rejected` });
                 }
+                await client.query("COMMIT")
             }
         } catch (err) {
+            await client.query("ROLLBACK")
             console.error(err);
             res.status(500).json({ status: 500, message: "Unknown error occurred while processing request" });
         }

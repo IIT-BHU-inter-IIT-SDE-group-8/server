@@ -19,6 +19,10 @@ const friendRouter = require('./src/routes/friendsRouter');
 const communityRequestRouter = require('./src/routes/communityRequestRouter.js')
 
 app.use(cors());
+const notifRouter = require('./src/routes/notificationRouter.js')
+const friendRequestRouter = require('./src/routes/friendRequestRouter.js')
+const friendshipRouter = require('./src/routes/friendshipRouter.js')
+
 
 //Additional middlewares
 app.use(express.json());
@@ -56,7 +60,10 @@ app.use('/trips', tripRouter);
 app.use('/communities', communityRouter)
 app.use('/users', userRouter);
 app.use('/friends',friendRouter);
+app.use('/notifs', notifRouter);
 app.use('/community_requests', communityRequestRouter);
+app.use('/friend_requests', friendRequestRouter);
+app.use('/friendship', friendshipRouter);
 
 
 // Funtion inside passport which initializes passport

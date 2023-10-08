@@ -13,8 +13,8 @@ const checkAuthenticated = (req, res, next) => {
         req.user = data.user;
         next();
     } catch (error) {
-        res.status(401).send({error : "Please authenticate using a valid token"})
+        res.status(401).send({ error: "Please authenticate using a valid token" })
     }
 }
 
-module.exports = {checkAuthenticated}
+module.exports = { checkAuthenticated }
