@@ -11,22 +11,20 @@ const createCommunitiesTable = () => {
                 community_name VARCHAR(255) NOT NULL,
                 community_desc VARCHAR(255),
                 community_admin_id INT NOT NULL,
-                FOREIGN KEY(community_admin_id) REFERENCES users(user_id)
+                FOREIGN KEY (community_admin_id) references users (user_id)
             );
             `, (err, res) => {
         if (err) {
             console.error('Error creating communities table:', err);
-        } else {
-            console.log('Communities table created successfully');
-        }
+        }``
     });
 
 
 }
 
 const createCommunityRequestTable = async () => {
-    createStatus()
-    createTypes()
+    // createStatus()
+    // createTypes()
 
     client.query(`
 CREATE TABLE IF NOT EXISTS community_requests (
@@ -43,8 +41,6 @@ CREATE TABLE IF NOT EXISTS community_requests (
 `, (err, res) => {
         if (err) {
             console.error('Error creating communities_requests table:', err);
-        } else {
-            console.log('Communities_requests table created successfully');
         }
     });
 
@@ -107,4 +103,37 @@ const createCommunitiesTripsTable = () => {
     });
 }
 
-module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityRequestTable }
+//create table which user with community
+const createUserCommunityTable = async () => {
+    try {
+        const query = `
+    CREATE TABLE IF NOT EXISTS user_community (
+      user_community_id SERIAL PRIMARY KEY,
+      user_id INT,
+      community_id INT,
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
+      FOREIGN KEY (community_id) REFERENCES communities(community_id)
+  );
+  `;
+        await client.query(query);
+    } catch (error) {
+        console.error('Error creating table:', error);
+    }
+}
+
+// create community trip table
+const createCommunityAdminTable = async (req, res, next) => {
+    try {
+        client.query(`CREATE TABLE IF NOT EXISTS community_admin (
+            community_admin_id SERIAL PRIMARY KEY,
+            user_id INT,
+            community_id INT,
+            FOREIGN KEY (user_id) REFERENCES users (user_id),
+            FOREIGN KEY (community_id) REFERENCES communities (community_id)
+        );`)
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = { createCommunitiesTripsTable, createCommunitiesTable, createCommunityAdminTable, createUserCommunityTable,createCommunityRequestTable }

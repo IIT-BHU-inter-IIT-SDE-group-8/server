@@ -1,7 +1,8 @@
 const app = require('./app.js');
-const { createUsersTable } = require("./src/models/userModel");
+const { createUsersTable, createUserBioTable } = require("./src/models/userModel");
 const {
-    createTrip, trip_link_to_community, link_user_to_community, link_user_to_trip, join_request
+  createTrip, createCommunityTripTable, createUserTripTable, createTripJoinRequestTable
+  // , createCommunityAdminTable
 } = require('./src/models/tripModels');
 const { createFriendsTable, createFriendRequestsTable } = require('./src/models/friendsModel.js');
 const { createCommunityRequestTable, createCommunitiesTable } = require('./src/models/communityModel.js');
@@ -18,6 +19,7 @@ createNotificationObjectTable()
 createUserNotifTable()
 createFriendsTable();
 createFriendRequestsTable();
+createUserBioTable();
 
 
 app.listen(PORT, () => {

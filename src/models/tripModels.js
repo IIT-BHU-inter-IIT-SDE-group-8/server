@@ -29,6 +29,9 @@ const createCommunityTripTable = async () => {
       community_id INT,
       trip_id INT,
       FOREIGN KEY (community_id) REFERENCES communities(community_id),
+      FOREIGN KEY (trip_id) REFERENCES trips(trip_id),
+      trip_id INT,
+      FOREIGN KEY (community_id) REFERENCES communities(community_id),
       FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
   );
   `;
@@ -64,7 +67,6 @@ const createUserTripTable = async () => {
       user_trip_id SERIAL PRIMARY KEY,
       user_id INT,
       trip_id INT,
-      is_admin BOOLEAN,
       FOREIGN KEY (trip_id) REFERENCES trips(trip_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id)
   );
@@ -79,7 +81,7 @@ const createUserTripTable = async () => {
 const createTripJoinRequestTable = async () => {
     try {
         const query = `
-    CREATE TABLE IF NOT EXISTS join_requests (
+    CREATE TABLE IF NOT EXISTS trip_join_requests (
       join_request_id SERIAL PRIMARY KEY,
       user_id INT,
       trip_id INT,
@@ -93,6 +95,54 @@ const createTripJoinRequestTable = async () => {
     }
 }
 
+//trip invite table
+const createTripInviteTable = async(req, res, next) => {
+    createStatus();
+    try {
+        client.query(`CREATE TABLE IF NOT EXISTS trip_invites (
+            invite_id SERIAL PRIMARY KEY,
+            trip_id INT NOT NULL,
+            user_id INT NOT NULL,
+            admin_id INT NOT NULL,
+            invite_status request_status NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (admin_id) REFERENCES users(user_id),
+            FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
+        );`)
+    } catch (error) {
+        next(error);
+    }
+}
+
+//trip invite status
+const createStatus = async(req, res, next) => {
+    try {
+        client.query(`
+            CREATE TYPE EXISTS request_status AS ENUM ('accepted', 'denied', 'pending');`
+        )
+    } catch (error) {
+        next(error);
+    }
+}
+
+//create trip admin table
+const createTripAdminTable = async (req, res, next) => {
+    try {
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS trip_admin (
+                trip_admin_id SERIAL PRIMARY KEY,
+                user_id INT,
+                trip_id INT,
+                FOREIGN KEY (user_id) REFERENCES users(user_id),
+                FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
+            );
+            `
+        )
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
-    createTrip, createCommunityTripTable, createUserCommunityTable, createUserTripTable, createTripJoinRequestTable
+    createTrip, createCommunityTripTable, createUserTripTable, createTripJoinRequestTable, createTripAdminTable, createTripInviteTable
 };

@@ -8,6 +8,7 @@ const { ErrorHandler } = require("../middleware/error.js");
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        console.log("the data obtained is:",email, password);
         const emailCheckQuery = {
             text: `SELECT * FROM users WHERE user_email = $1`,
             values: [email]
@@ -26,9 +27,16 @@ const login = async (req, res, next) => {
                 const authToken = jwt.sign(data, JWT_SECRET);
 
                 // Store the authToken in a cookie
-                res.cookie('authToken', authToken, { httpOnly: true });
+                res.cookie('authToken', authToken, { 
+                    expires: new Date(Date.now() + 2000000000),
+                    httpOnly: true, 
+                });
 
-                return sendTrue(res, 200, "Login successful");
+                return res.status(200).json({
+                    authToken: authToken,
+                    data: data
+                })
+
             } else {
                 return next(new ErrorHandler("Please try to login with correct credentials", 401));
             }
@@ -44,6 +52,7 @@ const register = async (req, res, next) => {
     const { name, email, password, bio, phone } = req.body;
 
     try {
+        console.log("the data obtained are:",name)
         const salt = await bcrypt.genSalt(10);
         const secPass = await bcrypt.hash(password, salt);
 
@@ -66,14 +75,23 @@ const register = async (req, res, next) => {
         };
 
         await client.query(insertUserQuery, (err, results) => {
-            const user_id = results.rows[0].user_id;
+            const user = results.rows[0];
 
-            const authToken = jwt.sign({ user: { id: user.user_id } }, JWT_SECRET);
+            const data = {
+                user: {
+                    id: user.user_id
+                }
+            };
+
+            const authToken = jwt.sign(data, JWT_SECRET);
 
             // Store the authToken in a cookie
             res.cookie('authToken', authToken, { httpOnly: true });
-
-            return sendTrue(res, 201, "You are now registered. Please log in");
+            console.log("registered successfully");
+            return res.status(200).json({
+                authToken: authToken,
+                data: data
+            })
         });
     } catch (error) {
         console.log(error)
@@ -83,9 +101,11 @@ const register = async (req, res, next) => {
 
 const logout = (req, res) => {
 
+    console.log("here");
     res.clearCookie('authToken');
-    res.redirect('/users/login');
+    // res.redirect('/users/login');
     return res.status(200).json({ message: "You have been logged out" });
+
 };
 
 

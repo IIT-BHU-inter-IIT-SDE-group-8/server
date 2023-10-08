@@ -20,6 +20,25 @@ const createUsersTable = async () => {
     }
 };
 
+//create user Bio table
+const createUserBioTable = async (req, res, next) =>{
+    try {
+        client.query(`
+            CREATE TABLE IF NOT EXISTS user_bio (
+                bio_id SERIAL PRIMARY KEY,
+                user_id INT,
+                user_phone INT,
+                user_fav_location VARCHAR(100),
+                user_preffered_vehicle VARCHAR(30),
+                user_profile_photo VARCHAR(255),
+                bio TEXT
+            );
+        `)
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
-    createUsersTable
+    createUsersTable, createUserBioTable
 }

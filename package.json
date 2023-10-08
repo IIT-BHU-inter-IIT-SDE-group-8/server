@@ -30,7 +30,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.11.3",
     "pg-promise": "^11.5.4",
-    "web-push": "^3.6.5"
+    "web-push": "^3.6.6"
   },
   "repository": {
     "type": "git",

@@ -3,7 +3,7 @@ const community_users_cache = new Set()
 const community_cache = [];
 //TODO: return results using the utils defined by Varun
 //TODO: uncomment the line for community admin from the req.user
-const client = require("../config/configDB");
+const {client} = require("../config/configDB");
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache")
 const { queryTrips } = require('./tripController');
@@ -126,7 +126,7 @@ WHERE community_trips.community_id = $1;
     )
 }
 
-const addTripToCommunity = async (req, res) => {
+const addTripToCommunity = async (req, res, next) => {
 
     const entryIsInDB = await tableContainsLink("community_trips", "community_id", "trip_id", req.params.community_id, req.params.trip_id, community_trips_cache)
 
