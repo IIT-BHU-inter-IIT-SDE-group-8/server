@@ -23,33 +23,37 @@ const createTrip = async (req, res, next) => {
                 }
                 else
                 {
-                    const trip_id = results.rows[0].trip_id;
-                    client.query(`INSERT INTO trip_admin (user_id, trip_id) VALUES ($1, $2)`,[user_id,trip_id],(err, results) => {
-                        if(err)
-                        {
-                            res.status(400).json({
-                                status: 400,
-                                message:"Unexpected occured while linking trip admin to trip"
-                            })
-                        }
-                        else
-                        {
-                            client.query(`INSERT INTO user_trip (user_id, trip_id) VALUES ($1, $2)`,[user_id, trip_id],(err, results) => {
-                                if(err)
-                                {
-                                    res.status(400).json({
-                                        status: 400,
-                                        message:"Unexpected error occured"
-                                    })
-                                }
-                                else
-                                {
-                                    const message = "Trip created successfully";
-                                    res.status(200).json({ message });
-                                }
-                            })
-                        }
-                    })
+                    try {
+                        const trip_id = results.rows[0].trip_id;
+                        client.query(`INSERT INTO trip_admin (user_id, trip_id) VALUES ($1, $2)`,[user_id,trip_id],(err, results) => {
+                            if(err)
+                            {
+                                res.status(400).json({
+                                    status: 400,
+                                    message:"Unexpected occured while linking trip admin to trip"
+                                })
+                            }
+                            else
+                            {
+                                client.query(`INSERT INTO user_trip (user_id, trip_id) VALUES ($1, $2)`,[user_id, trip_id],(err, results) => {
+                                    if(err)
+                                    {
+                                        res.status(400).json({
+                                            status: 400,
+                                            message:"Unexpected error occured"
+                                        })
+                                    }
+                                    else
+                                    {
+                                        const message = "Trip created successfully";
+                                        res.status(200).json({ message });
+                                    }
+                                })
+                            }
+                        })
+                    } catch (error) {
+                        console.log(error);
+                    }
                 }
             })
     } catch (error) {
@@ -395,6 +399,28 @@ const queryTrips = async (req, res, tripIds) => {
     }
 }
 
+const getTripUserPartOf = async (req, res, next) => {
+    const user_id = req.user.id;
+    try {
+       const query = `SELECT trip_id FROM user_trip WHERE user_id = $1`;
+        client.query(query,[user_id],(err, results) => {
+            if(err)
+            {
+                res.status(400).json({
+                    code: 400,
+                    message: "Unexpected error occured!"
+                })
+            }
+            else
+            {
+                res.status(200).json({results: results.rows});
+            }
+        })
+    } catch (error) {
+        next(error);
+    }
+}
+
 const myTrips = new Set();
 
 const getMyTrip = async(req, res, next) => {
@@ -403,6 +429,7 @@ const getMyTrip = async(req, res, next) => {
         fetchGroupIds(user_id, myTripsQuery, myTrips).then(tripIds => {
             queryTrips(req, res, tripIds);
         })
+        myTrips.clear();
     } catch (error) {
         next(error);
     }
@@ -522,4 +549,4 @@ const AllowOrDenyTripJoinRequest = async (req, res, next) => {
     }
 }
 
-module.exports = { getTripById, createTrip, UpdateTrip, deleteTrip, getAllTrips, getAllTripsOfUserFriendsAndCommunity, queryTrips, AllowOrDenyTripJoinRequest, findAdmin, fetchGroupIds, tripAdminQuery, trip_users_cache, getAllTripJoinRequests, getMyTrip, getTripMembers }
+module.exports = { getTripById, createTrip, UpdateTrip, deleteTrip, getAllTrips, getAllTripsOfUserFriendsAndCommunity, queryTrips, AllowOrDenyTripJoinRequest, findAdmin, fetchGroupIds, tripAdminQuery, trip_users_cache, getAllTripJoinRequests, getMyTrip, getTripMembers, getTripUserPartOf }

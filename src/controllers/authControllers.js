@@ -101,9 +101,11 @@ const register = async (req, res, next) => {
 
 const logout = (req, res) => {
 
+    console.log("here");
     res.clearCookie('authToken');
-    res.redirect('/users/login');
+    // res.redirect('/users/login');
     return res.status(200).json({ message: "You have been logged out" });
+
 };
 
 
