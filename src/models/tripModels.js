@@ -41,7 +41,23 @@ const createCommunityTripTable = async () => {
     }
 }
 
-
+//create table which user with community
+const createUserCommunityTable = async () => {
+    try {
+        const query = `
+    CREATE TABLE IF NOT EXISTS community_users (
+      user_community_id SERIAL PRIMARY KEY,
+      user_id INT,
+      community_id INT,
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
+      FOREIGN KEY (community_id) REFERENCES communities(community_id)
+  );
+  `;
+        await client.query(query);
+    } catch (error) {
+        console.error('Error creating table:', error);
+    }
+}
 
 //create table which link user with trip
 const createUserTripTable = async () => {
@@ -91,7 +107,7 @@ const createTripInviteTable = async(req, res, next) => {
             invite_status request_status NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(user_id),
             FOREIGN KEY (admin_id) REFERENCES users(user_id),
-            FOREIGN KEY (community_id) REFERENCES communities(community_id)
+            FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
         );`)
     } catch (error) {
         next(error);

@@ -1,32 +1,91 @@
-const { client } = require('../config/configDB')
+const {client} = require('../config/configDB')
 const bcrypt = require("bcrypt");
 const user_trip_cache = new Set()
 const tableContainsLink = require("../utils/tabelContainsLink")
 const { removeElementFromSet } = require("../utils/cache");
 const { findAdmin, tripAdminQuery } = require('./tripController');
 
+const inputUserBio = async (req, res, next) => {
+    const user_id = req.user.id;
 
-const getAllUsers = async (res, req, next) => {
     try {
-        client.query(`SELECT * from users`, (err, results) => {
-            console.log(results.rows);
+        const { phone, location, vehicle, bio, image } = req.body;
+
+        // First query to insert user bio
+        const bioQuery = `
+            INSERT INTO user_bio (user_id, user_phone, user_fav_location, user_preffered_vehicle, user_profile_photo, bio) 
+            VALUES ($1, $2, $3, $4, $5, $6);
+        `;
+
+        // Execute the first query
+        client.query(bioQuery, [user_id, phone, location, vehicle, image, bio], (err, results) => {
+            if (err) {
+                res.status(500).json({ 
+                    message: "Unknown internal error occurred, and bio can't be inputted!",
+                    error: err
+                });
+            } else {
+                res.status(200).json({ message: "Bio entered successfully!" });
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+};
+
+const editUserBio = async (req, res, next) => {
+    const { phone, location, vehicle, bio, image } = req.body;
+    
+    const user_id = req.user.id;
+
+    const bioQuery = `UPDATE user_bio SET user_phone = $1, user_fav_location = $2, user_preffered_vehicle = $3, user_profile_photo = $4, bio = $6 WHERE user_id = $5;`;
+
+    try {
+
+        client.query(bioQuery, [phone, location, vehicle, image, user_id, bio], (err, results) => {
+            if(err)
+            {
+                res.status(500).json({
+                    status: 500,
+                    message: "Unknown error occures can't update user's bio"
+                })
+            }
+            else
+            {
+                res.status(200).json({
+                    status: 200,
+                    message: "User Bio updated successfully"
+                })
+            }
         })
     } catch (error) {
         next(error);
     }
 }
-const getUserById = (res, req) => {
+
+const getAllUsers = async (req, res, next) => {
+
+    try {
+        client.query(`SELECT * from users`, (err, results) => {
+            res.status(200).json(results)
+        })
+    } catch (error) {
+        next(error);
+    }
+}
+const getUserById = (req, res) => {
 
     const auth_user_id = req.user.id;
     const user_id = parseInt(req.params.user_id, 10);
 
     if(auth_user_id === user_id)
     {
+
         client.query("SELECT * FROM users WHERE user_id = $1", [user_id]
             , (error, result) => {
 
             if (!error) {
-                res.status(200).json(result)
+                res.status(200).json(result.rows)
             }
             else {
                 res.status(500).json({ status: 500, message: "Unknown error while getting user by Id" })
@@ -38,6 +97,28 @@ const getUserById = (res, req) => {
         res.status(401).json({ message: "Cannot get user" });
     }
     
+}
+
+const getUserBio = async (req, res, next) => {
+    const user_id = req.user.id;
+    try {
+        const query = `SELECT * FROM user_bio WHERE user_id = $1`;
+        client.query(query,[user_id],(err, results) => {
+            if(err)
+            {
+                res.status(400).json({
+                    status: 400,
+                    message: "Unexpected error occured while geting user's bio",
+                })
+            }
+            else
+            {
+                res.status(200).json({result: results.rows});
+            }
+        })
+    } catch (error) {
+        next(error);
+    }
 }
 
 const updateUser = async (req, res, next) => {
@@ -92,17 +173,48 @@ const makeTripJoinRequest = async (req, res, next) => {
 
     const user_id = parseInt(req.params.user_id, 10);
     const trip_id = parseInt(req.body.trip_id, 10);
-    const auth_user_id = req.user.id;
-    const entryIsInDB = await tableContainsLink("user_trip", user_id, trip_id, user_trip_cache)
+    const requestQuery = `SELECT * FROM trip_join_requests WHERE trip_id = $1 AND user_id = $2`;
 
-    if (entryIsInDB) {
-        res.status(400).json({ code: 400, message: "User already part of trip" })
-    }
-    else {
+    const auth_user_id = req.user.id;
+    // const entryIsInDB = await tableContainsLink("user_trip", user_id, trip_id, user_trip_cache)
+
+    // if (entryIsInDB) {
+    //     res.status(400).json({ code: 400, message: "User already part of trip" })
+    // }
+    // else {
         try {
             if (auth_user_id === user_id) {
 
-                client.query(`INSERT INTO trip_join_requests (user_id, trip_id) VALUES ($1, $2)`,[user_id, trip_id]);
+                const request = await client.query(requestQuery,[trip_id, user_id]);
+
+                if(request.rows.length > 0)
+                {
+                    console.log("request already present!")
+                    return res.status(400).json({
+                        code: 400,
+                        message: "request already present",
+                    })
+                }
+
+                else
+                {
+                    client.query(`INSERT INTO trip_join_requests (user_id, trip_id) VALUES ($1, $2)`,[user_id, trip_id],(err, results) => {
+                        if(err)
+                        {
+                            res.status(400).json({
+                                status: 400,
+                                message: "Unepected error occured!!"
+                            })
+                        }
+                        else
+                        {
+                            console.log(results.rows);
+                            res.status(200).json({
+                                message: "trip request made successfully!"
+                            })
+                        }
+                    });
+                }
 
             } else {
                 res.status(401).json({ message: "Cannot link user" });
@@ -111,7 +223,6 @@ const makeTripJoinRequest = async (req, res, next) => {
         } catch (error) {
             next(error);
         }
-    }
 }
 
 const getAllTripsOfUser = (req, res) => {
@@ -174,4 +285,4 @@ const unlinkTripAndUser = (req, res) => {
     }
 }
 
-module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, makeTripJoinRequest};
+module.exports = { getAllTripsOfUser, unlinkTripAndUser, getUserById, getAllUsers, updateUser, deleteUser, makeTripJoinRequest, inputUserBio, editUserBio, getUserBio};

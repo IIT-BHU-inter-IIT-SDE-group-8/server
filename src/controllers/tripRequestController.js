@@ -1,7 +1,6 @@
 const {client} = require('../config/configDB');
 const {tripAdminLookup} = require('../utils/tripAdminLookup');
 const {removeElementFromSet} = require('../utils/cache');
-const {tripAdminLookup} = require('../utils/tripAdminLookup');
 const trip_invite_cache = new Set();
 const tableContainsLink = require('../utils/tabelContainsLink');
 const {trip_users_cache} = require('./tripController');
@@ -38,22 +37,62 @@ function getTripInviteByInviteId(req, res, next){
     }
 }
 
-function getAllInviteObjectsByUserId(req, res, next){
-    try {
-        client.query(`SELECT * FROM trip_invites WHERE user_id = $1`,[req.params.user_id],(err, results) => {
-            (err, results) => {
-                if(!err)
-                {
+const getAllInviteObjectsByUserId = async (req, res, next) => {
+    const user_id = req.user.id;
+    let tripsSet = new Set();
+    try { 
+        client.query(`SELECT trip_id FROM trip_invites WHERE user_id = $1`,[user_id],(err, results) => {
+            
+            if(err)
+            {
+                res.status(400).json({message: "Unknown error occured!!"})
+            }
+            else 
+            {
+                let TripInviteArray = Array.from(tripsSet.add(results.rows[0].trip_id));
+                let AdminId = Array.from(tripsSet.add(results.rows[0].admin_id))
+                client.query(`SELECT * FROM trips WHERE trip_id = ANY($1)`,[TripInviteArray],(err, resulta)=>{
                     if(err)
                     {
                         res.status(400).json({message: "Unknown error occured!!"})
                     }
-                    else 
+                    else
                     {
-                        res.status(200).json({result: results.rows})
+                        client.query(`SELECT * FROM user_bio WHERE user_id = ANY($1)`,[AdminId],(err, result) => {
+                           if(err) 
+                           {
+                                res.status(400).json({
+                                    status:400,
+                                    message: "unexpected error occured"
+                                })
+                           }
+                           else
+                           {
+                                client.query(`SELECT * FROM users WHERE user_id = ANY($1)`,[AdminId],(err, results) => {
+                                    if(err)
+                                    {
+                                        res.status(400).json({
+                                            status:400,
+                                            message: "unexpected error occured"
+                                        })
+                                    }
+                                    else
+                                    {
+                                        res.status(200).json({
+                                            resulta : resulta.rows,
+                                            result : result.rows,
+                                            results: results.rows
+                                            
+                                        })
+                                    }
+                                })
+                           }
+                        })
+                        tripsSet.clear();
                     }
-                }
+                })
             }
+            
         })
     } catch (error) {
         next(error);
