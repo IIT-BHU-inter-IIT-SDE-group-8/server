@@ -22,7 +22,7 @@ const auth = (req, res, next) => {
 
 };
 
-const callback = async (req, res) => {
+const callback = async (req, res, next) => {
     try {
         const { code } = req.query;
         const { tokens } = await googleClient.getToken(code);
